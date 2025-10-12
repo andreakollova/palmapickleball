@@ -39,12 +39,12 @@
     }
 
     .navbar-brand img {
-      height: 42px;
+      height: 70px;
       width: auto;
     }
 
     .navbar-nav {
-      margin-right: auto; /* zarovnanie menu doľava */
+      margin-right: auto; /* menu zarovnanie doľava */
     }
 
     .navbar-nav .nav-link {
@@ -70,6 +70,21 @@
       color: #fff;
     }
 
+    /* PROFILE ICON */
+    .profile-icon img {
+      height: 38px;
+      width: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-left: 15px;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .profile-icon img:hover {
+      transform: scale(1.05);
+      filter: brightness(0.9);
+    }
+
     /* HERO */
     .hero {
       padding: 6rem 0 5rem;
@@ -90,12 +105,10 @@
       margin: 0 auto 2rem;
     }
 
-    /* SECTIONS */
     section {
       padding: 5rem 0;
     }
 
-    /* FEATURE CARDS */
     .feature-card {
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -107,12 +120,6 @@
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     }
 
-    .feature-card h5 {
-      font-weight: 500;
-      font-size: 1.1rem;
-    }
-
-    /* FOOTER */
     footer {
       border-top: 1px solid var(--border);
       color: var(--muted);
@@ -127,22 +134,30 @@
   <!-- HEADER -->
   <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container d-flex align-items-center justify-content-between">
-      <a class="navbar-brand d-flex align-items-center gap-2" href="#">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball logo">
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="nav">
-        <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" href="#home">Domov</a></li>
-          <li class="nav-item"><a class="nav-link" href="#about">O nás</a></li>
-          <li class="nav-item"><a class="nav-link" href="#courts">Kurty</a></li>
-          <li class="nav-item"><a class="nav-link" href="#events">Turnaje</a></li>
-          <li class="nav-item"><a class="nav-link" href="#membership">Členstvo</a></li>
-          <li class="nav-item"><a class="nav-link" href="#contact">Kontakt</a></li>
-        </ul>
-        <a class="btn btn-outline-dark ms-lg-4 px-3 py-1" href="#book">Rezervovať</a>
+
+      <!-- Left side (logo + menu) -->
+      <div class="d-flex align-items-center gap-4">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball logo">
+        </a>
+        <div class="collapse navbar-collapse show" id="nav">
+          <ul class="navbar-nav">
+            <li class="nav-item"><a class="nav-link" href="#home">Domov</a></li>
+            <li class="nav-item"><a class="nav-link" href="#about">O nás</a></li>
+            <li class="nav-item"><a class="nav-link" href="#courts">Kurty</a></li>
+            <li class="nav-item"><a class="nav-link" href="#events">Turnaje</a></li>
+            <li class="nav-item"><a class="nav-link" href="#membership">Členstvo</a></li>
+            <li class="nav-item"><a class="nav-link" href="#contact">Kontakt</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Right side (Rezervovať + profil) -->
+      <div class="d-flex align-items-center">
+        <a class="btn btn-outline-dark px-3 py-1" href="#book">Rezervovať</a>
+        <a href="#profile" class="profile-icon">
+          <img src="{{ url_for('static', filename='images/profile1.png') }}" alt="Profil používateľa">
+        </a>
       </div>
     </div>
   </nav>
