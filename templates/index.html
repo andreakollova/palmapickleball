@@ -1,135 +1,6 @@
-<!doctype html>
-<html lang="sk">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Palma Pickleball</title>
+{% extends "base.html" %}
 
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <style>
-    :root{
-      --bg:#ffffff; --text:#111; --muted:#667085; --border:#e7e9ee;
-      --accent:#2f2bbd; --accent-ink:#fff;
-      --slot:#fff; --slot-dash:#d8dde6; --slot-active:#ecebff; --slot-book:#f3f4f7;
-      --shadow:0 10px 30px rgba(17,24,39,.08);
-      --band:#3b39d6;
-      --label-col: 115px;
-      --slot-h: 15px;
-
-    }
-    body{background:var(--bg); color:var(--text); font-family:'Inter',system-ui,sans-serif; line-height:1.6;}
-
-    /* NAVBAR */
-    .navbar{border-bottom:1px solid var(--border); background:rgba(255,255,255,.95); backdrop-filter:blur(8px);}
-    .navbar-brand img{height:70px;width:auto;}
-    .navbar-nav{margin-right:auto;}
-    .nav-link{color:#111; font-weight:400}
-    .nav-link:hover{color:var(--accent)}
-    .profile-icon img{height:38px;width:38px;border-radius:50%;object-fit:cover;margin-left:12px}
-    .btn-outline-dark{border-color:#111;color:#111}
-    .btn-outline-dark:hover{background:#111;color:#fff}
-
-    /* DAY BAR */
-    .daybar{position:sticky; top:70px; z-index:5; background:#fff; border-bottom:1px solid var(--border);}
-    .daybox{border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:10px 12px; margin-top:10px;
-            display:flex; justify-content:space-between; align-items:center; gap:12px;}
-    .day-title{font-weight:600}
-    .day-sub{color:var(--muted); font-size:.95rem}
-    .chip{border:1px solid var(--border); background:#fff; border-radius:10px; padding:6px 12px}
-    .navbtn{border:1px solid var(--border); background:#fff; border-radius:10px; width:38px; height:38px;
-            display:flex; align-items:center; justify-content:center; font-weight:600;}
-
-    /* TIMELINE */
-    .timeline{padding:16px 0 22px; border-bottom:1px solid var(--border);}
-    .scroller{overflow-x:auto}
-    .grid-wrap{min-width:1200px}
-
-    .hours{
-      display:grid;
-      grid-template-columns: var(--label-col) repeat(26, 1fr);
-      column-gap:10px;
-      align-items:center;
-      margin-bottom:8px;
-    }
-    .hlabel{grid-column-end: span 2; text-align:center; color:#6b7280; font-size:.95rem}
-
-    /* More vertical space so Kurt 2 fits under bands/captions */
-    .rowline{
-      display:grid;
-      grid-template-columns: var(--label-col) 1fr;
-      align-items:start;
-      column-gap:10px;
-      margin-bottom: calc(var(--slot-h) + 36px);
-    }
-    .courtname{display:flex; align-items:center; font-weight:600; color:#1f2937}
-    .cells{display:grid; grid-template-columns: repeat(26, 1fr); gap:10px; position:relative; min-height:72px;}
-    .cells.clickable{cursor: col-resize;} /* subtle hint that you can adjust via adjacent clicks */
-
-    .cell{
-      background:var(--slot);
-      border:1px dashed var(--slot-dash);
-      border-radius:14px;
-      min-height: var(--slot-h);
-      cursor:pointer;
-      transition:border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .15s ease;
-    }
-    .cell:hover{border-color:#c9ced7}
-    .cell.booked{background:var(--slot-book); border:1px solid #e1e4ea; cursor:not-allowed; color:#98a2b3}
-    .cell.active{background:var(--slot-active); border-color:#d5d4ff}
-
-    /* UNDER-BAND + time chip below the row */
-    .underband{
-      position:absolute; height:12px; background:var(--band); border-radius:10px;
-      left:0; top: calc(56px + 6px); /* just below cells */
-      box-shadow: 0 6px 16px rgba(47,43,189,.28);
-      pointer-events:none;
-      transition: left .06s linear, width .06s linear;
-    }
-    .timechip{
-      position:absolute; top: calc(56px + 24px);
-      background:#fff; color:#111; border:1px solid var(--border);
-      border-radius:999px; padding:2px 10px; font-size:.85rem; line-height:1.6; white-space:nowrap;
-      box-shadow:0 6px 16px rgba(16,24,40,.08);
-      pointer-events:none;
-      transition:left .06s linear;
-    }
-    .timechip.tight{font-size:.78rem; padding:1px 8px}
-
-    /* BOOK BAR */
-    .bookbar{position:sticky; bottom:0; z-index:6; background:#fff; border-top:1px solid var(--border); padding:12px 0}
-    .note{border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:.95rem}
-    .note.ok{border-color:#bbf7d0; background:#f0fdf4; color:#166534}
-    .note.err{border-color:#fecaca; background:#fef2f2; color:#991b1b}
-  </style>
-</head>
-<body>
-
-  <!-- NAVBAR -->
-  <nav class="navbar navbar-expand-lg sticky-top">
-    <div class="container d-flex align-items-center justify-content-between">
-      <div class="d-flex align-items-center gap-4">
-        <a class="navbar-brand d-flex align-items-center" href="#">
-          <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball logo">
-        </a>
-        <div class="collapse navbar-collapse show">
-          <ul class="navbar-nav">
-            <li class="nav-item"><a class="nav-link" href="#book">Rezervácie</a></li>
-            <li class="nav-item"><a class="nav-link" href="#membership">Členstvo</a></li>
-            <li class="nav-item"><a class="nav-link" href="#contact">Kontakt</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="d-flex align-items-center">
-        <a class="btn btn-outline-dark px-3 py-1" href="#book">Rezervovať</a>
-        <a href="#profile" class="profile-icon">
-          <img src="{{ url_for('static', filename='images/profile1.png') }}" alt="Profil">
-        </a>
-      </div>
-    </div>
-  </nav>
+{% block content %}
 
   <!-- DAY BAR -->
   <section id="book" class="daybar">
@@ -149,20 +20,17 @@
     </div>
   </section>
 
-  <!-- TIMELINE -->
+  <!-- ===== BOOKING (unchanged) ===== -->
   <section class="timeline">
     <div class="container scroller">
       <div class="grid-wrap">
-        <!-- Hours -->
         <div class="hours" id="hours"></div>
 
-        <!-- Court 1 -->
         <div class="rowline">
           <div class="courtname">Kurt 1</div>
           <div class="cells" id="cells1" data-court="1"></div>
         </div>
 
-        <!-- Court 2 -->
         <div class="rowline">
           <div class="courtname">Kurt 2</div>
           <div class="cells" id="cells2" data-court="2"></div>
@@ -202,230 +70,118 @@
     </div>
   </section>
 
-  <footer class="border-top py-3" style="border-color:var(--border)!important;">
-    <div class="container text-center text-muted small">© <span id="year"></span> Palma Pickleball Bratislava</div>
-  </footer>
+{% endblock %}
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // ---------- constants ----------
-    const SLOTS = [
-      "08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30",
-      "12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30",
-      "16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30"
-    ];
-    const HOURS = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
+{% block scripts %}
+<script>
+  /* ==== booking JS stays the same as your current version ==== */
+  const SLOTS=["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30"];
+  const HOURS=["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
 
-    // ---------- DOM ----------
-    const hoursEl   = document.getElementById('hours');
-    const cells1    = document.getElementById('cells1');
-    const cells2    = document.getElementById('cells2');
-    const feedback  = document.getElementById('feedback');
-    const bookbar   = document.getElementById('bookbar');
-    const selSummary= document.getElementById('selSummary');
-    const nameInput = document.getElementById('name');
-    const emailInput= document.getElementById('email');
+  const hoursEl=document.getElementById('hours');
+  const cells1=document.getElementById('cells1');
+  const cells2=document.getElementById('cells2');
+  const bookbar=document.getElementById('bookbar');
+  const selSummary=document.getElementById('selSummary');
+  const nameInput=document.getElementById('name');
+  const emailInput=document.getElementById('email');
+  const datePick=document.getElementById('datePick');
+  const todayBtn=document.getElementById('todayBtn');
+  const prevBtn=document.getElementById('prevBtn');
+  const nextBtn=document.getElementById('nextBtn');
+  const dayName=document.getElementById('dayName');
+  const dayDate=document.getElementById('dayDate');
+  const skDays=["Nedeľa","Pondelok","Utorok","Streda","Štvrtok","Piatok","Sobota"];
 
-    const datePick  = document.getElementById('datePick');
-    const todayBtn  = document.getElementById('todayBtn');
-    const prevBtn   = document.getElementById('prevBtn');
-    const nextBtn   = document.getElementById('nextBtn');
-    const dayName   = document.getElementById('dayName');
-    const dayDate   = document.getElementById('dayDate');
-    const skDays    = ["Nedeľa","Pondelok","Utorok","Streda","Štvrtok","Piatok","Sobota"];
+  function fmt(d){return d.toISOString().slice(0,10);}
+  function parse(s){return new Date(s+"T00:00:00");}
+  function nextTime(t){const [h,m]=t.split(':').map(Number);let H=h,M=m+30;if(M===60){H++;M=0}return `${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}`;}
+  function setHeader(d){const dt=parse(d);dayName.textContent=skDays[dt.getDay()].toUpperCase();dayDate.textContent=dt.toLocaleDateString('sk-SK',{day:'2-digit',month:'2-digit',year:'numeric'});}
+  function showNote(type,html){const fb=document.getElementById('feedback');fb.style.display='block';fb.className='note '+(type==='ok'?'ok':'err');fb.innerHTML=html}
+  function clearNote(){const fb=document.getElementById('feedback');fb.style.display='none';fb.className='';fb.innerHTML=''}
 
-    // ---------- helpers ----------
-    function fmt(d){return d.toISOString().slice(0,10);}
-    function parse(s){return new Date(s+"T00:00:00");}
-    function setHeader(d){const dt=parse(d); dayName.textContent=skDays[dt.getDay()].toUpperCase(); dayDate.textContent=dt.toLocaleDateString('sk-SK',{day:'2-digit',month:'2-digit',year:'numeric'});}
-    function nextTime(t){const [h,m]=t.split(':').map(Number); let H=h, M=m+30; if(M===60){H++; M=0} return `${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}`;}
-    function showNote(type, html){feedback.style.display='block'; feedback.className='note '+(type==='ok'?'ok':'err'); feedback.innerHTML=html}
-    function clearNote(){feedback.style.display='none'; feedback.className=''; feedback.innerHTML=''}
+  function renderHours(){
+    hoursEl.innerHTML=''; const spacer=document.createElement('div');spacer.style.gridColumn='1 / span 1';hoursEl.appendChild(spacer);
+    HOURS.forEach((h,i)=>{const div=document.createElement('div');div.className='hlabel';div.style.gridColumn=`${2+i*2} / span 2`;div.textContent=h;hoursEl.appendChild(div);});
+  }
 
-    // ---------- hours row ----------
-    function renderHours(){
-      hoursEl.innerHTML = '';
-      const spacer = document.createElement('div'); spacer.style.gridColumn='1 / span 1'; hoursEl.appendChild(spacer);
-      HOURS.forEach((h, i) => {
-        const div = document.createElement('div');
-        div.className='hlabel';
-        div.style.gridColumn = `${2 + i*2} / span 2`;
-        div.textContent = h;
-        hoursEl.appendChild(div);
+  let activeCellsEl=null,startIdx=null,endIdx=null;
+  function clearVisual(cellsEl){
+    if(!cellsEl)return;
+    cellsEl.querySelectorAll('.cell').forEach(c=>c.classList.remove('active'));
+    const band=cellsEl.querySelector('.underband'); if(band) band.remove();
+    const chip=cellsEl.querySelector('.timechip'); if(chip) chip.remove();
+    bookbar.style.display='none';
+  }
+  function applyVisual(cellsEl,s,e){
+    const list=[...cellsEl.querySelectorAll('.cell')];
+    list.forEach((c,i)=>c.classList.toggle('active',i>=s&&i<=e&&!c.classList.contains('booked')));
+    let band=cellsEl.querySelector('.underband'); if(!band){band=document.createElement('div');band.className='underband';cellsEl.appendChild(band);}
+    const left=list[s].offsetLeft, right=list[e].offsetLeft+list[e].offsetWidth;
+    band.style.left=left+'px'; band.style.width=(right-left)+'px';
+    let chip=cellsEl.querySelector('.timechip'); const label=`${SLOTS[s]} – ${nextTime(SLOTS[e])}`;
+    if(!chip){chip=document.createElement('div');chip.className='timechip';cellsEl.appendChild(chip);}
+    chip.textContent=label; chip.style.left=left+'px';
+    requestAnimationFrame(()=>{const bandW=(right-left), chipW=chip.offsetWidth;let chipLeft=left+(bandW-chipW)/2;const maxLeft=cellsEl.clientWidth-chipW;chipLeft=Math.max(0,Math.min(chipLeft,maxLeft));chip.classList.toggle('tight',chipW>bandW);chip.style.left=chipLeft+'px';});
+    selSummary.innerHTML=`<strong>${cellsEl.dataset.court==='1'?'Kurt 1':'Kurt 2'}</strong> • ${label}`;
+    bookbar.style.display='block';
+  }
+  function isBooked(cellsEl,idx){return cellsEl.querySelectorAll('.cell')[idx].classList.contains('booked');}
+  function buildCells(cellsEl,courtId,bookedSet){
+    clearVisual(cellsEl); cellsEl.innerHTML='';
+    SLOTS.forEach((t,idx)=>{
+      const c=document.createElement('div'); c.className='cell'; c.dataset.time=t;
+      if(bookedSet.has(t)) c.classList.add('booked');
+      c.addEventListener('click',()=>{
+        if(c.classList.contains('booked')) return;
+        if(activeCellsEl && activeCellsEl!==cellsEl){clearVisual(activeCellsEl); activeCellsEl=null; startIdx=endIdx=null;}
+        if(activeCellsEl===null){activeCellsEl=cellsEl; startIdx=endIdx=idx; applyVisual(cellsEl,startIdx,endIdx); return;}
+        const s=Math.min(startIdx,endIdx), e=Math.max(startIdx,endIdx);
+        if(s===e && idx===s){clearVisual(cellsEl); activeCellsEl=null; startIdx=endIdx=null; return;}
+        if(idx===s && s<e){startIdx=s+1; applyVisual(cellsEl,Math.min(startIdx,endIdx),Math.max(startIdx,endIdx)); return;}
+        if(idx===e && s<e){endIdx=e-1; applyVisual(cellsEl,Math.min(startIdx,endIdx),Math.max(startIdx,endIdx)); return;}
+        if(idx===e+1 && !isBooked(cellsEl,idx)){endIdx=idx; applyVisual(cellsEl,s,endIdx); return;}
+        if(idx===s-1 && !isBooked(cellsEl,idx)){startIdx=idx; applyVisual(cellsEl,startIdx,e); return;}
+        if(idx>s && idx<e){startIdx=endIdx=idx; applyVisual(cellsEl,idx,idx); return;}
+        if(!isBooked(cellsEl,idx)){startIdx=endIdx=idx; applyVisual(cellsEl,idx,idx);}
       });
-    }
-
-    // ---------- selection state (single active selection at a time) ----------
-    let activeCellsEl = null;
-    let startIdx = null;
-    let endIdx = null;
-    let bandEl = null;
-    let chipEl = null;
-
-    function clearVisual(cellsEl){
-      if (!cellsEl) return;
-      cellsEl.querySelectorAll('.cell').forEach(c => c.classList.remove('active'));
-      const band = cellsEl.querySelector('.underband'); if (band) band.remove();
-      const chip = cellsEl.querySelector('.timechip');  if (chip) chip.remove();
-      cellsEl.classList.remove('clickable');
-      bookbar.style.display='none';
-    }
-
-    function applyVisual(cellsEl, s, e){
-      // highlight cells
-      const list=[...cellsEl.querySelectorAll('.cell')];
-      list.forEach((c,i)=>c.classList.toggle('active', i>=s && i<=e && !c.classList.contains('booked')));
-
-      // band below cells
-      let band = cellsEl.querySelector('.underband');
-      if (!band){ band=document.createElement('div'); band.className='underband'; cellsEl.appendChild(band); }
-      const left = list[s].offsetLeft;
-      const right= list[e].offsetLeft + list[e].offsetWidth;
-      band.style.left = left + 'px';
-      band.style.width= (right - left) + 'px';
-
-      // time chip centered
-      let chip = cellsEl.querySelector('.timechip');
-      const label=`${SLOTS[s]} – ${nextTime(SLOTS[e])}`;
-      if (!chip){ chip=document.createElement('div'); chip.className='timechip'; cellsEl.appendChild(chip); }
-      chip.textContent = label;
-
-      // center chip over band, clamp inside row
-      chip.style.left = left + 'px';
-      requestAnimationFrame(()=>{
-        const bandW = (right - left);
-        const chipW = chip.offsetWidth;
-        let chipLeft = left + (bandW - chipW)/2;
-        const maxLeft = cellsEl.clientWidth - chipW;
-        chipLeft = Math.max(0, Math.min(chipLeft, maxLeft));
-        chip.classList.toggle('tight', chipW > bandW);
-        chip.style.left = chipLeft + 'px';
-      });
-
-      // sticky footer info
-      selSummary.innerHTML = `<strong>${cellsEl.dataset.court === '1' ? 'Kurt 1' : 'Kurt 2'}</strong> • ${label}`;
-      bookbar.style.display='block';
-      cellsEl.classList.add('clickable');
-    }
-
-    function isBooked(cellsEl, idx){
-      const c = cellsEl.querySelectorAll('.cell')[idx];
-      return c.classList.contains('booked');
-    }
-
-    function buildCells(cellsEl, courtId, bookedSet){
-      clearVisual(cellsEl);
-      cellsEl.innerHTML='';
-      SLOTS.forEach((t, idx) => {
-        const c=document.createElement('div');
-        c.className='cell'; c.dataset.time=t;
-        if (bookedSet.has(t)) c.classList.add('booked');
-
-        c.addEventListener('click', ()=>{
-          if (c.classList.contains('booked')) return;
-
-          // if selection is on different row, switch rows
-          if (activeCellsEl && activeCellsEl !== cellsEl){
-            clearVisual(activeCellsEl);
-            activeCellsEl = null; startIdx = null; endIdx = null;
-          }
-
-          // no active selection -> start here
-          if (activeCellsEl === null){
-            activeCellsEl = cellsEl; startIdx = idx; endIdx = idx;
-            applyVisual(cellsEl, startIdx, endIdx);
-            return;
-          }
-
-          // same row, adjust:
-          const s = Math.min(startIdx, endIdx);
-          const e = Math.max(startIdx, endIdx);
-
-          // clicking selected single slot -> clear
-          if (s === e && idx === s){
-            clearVisual(cellsEl); activeCellsEl = null; startIdx = endIdx = null; return;
-          }
-
-          // clicking at left/right edge shrinks
-          if (idx === s && s < e){ startIdx = s + 1; applyVisual(cellsEl, Math.min(startIdx,endIdx), Math.max(startIdx,endIdx)); return; }
-          if (idx === e && s < e){ endIdx   = e - 1; applyVisual(cellsEl, Math.min(startIdx,endIdx), Math.max(startIdx,endIdx)); return; }
-
-          // clicking neighbor extends if free
-          if (idx === e + 1 && !isBooked(cellsEl, idx)){ endIdx = idx; applyVisual(cellsEl, s, endIdx); return; }
-          if (idx === s - 1 && !isBooked(cellsEl, idx)){ startIdx = idx; applyVisual(cellsEl, startIdx, e); return; }
-
-          // clicking inside selection (not edges): collapse to that slot
-          if (idx > s && idx < e){ startIdx = endIdx = idx; applyVisual(cellsEl, idx, idx); return; }
-
-          // clicking non-adjacent free slot: start new selection here
-          if (!isBooked(cellsEl, idx)){
-            startIdx = endIdx = idx;
-            applyVisual(cellsEl, idx, idx);
-          }
-        });
-
-        cellsEl.appendChild(c);
-      });
-    }
-
-    // ---------- load day ----------
-    async function loadDay(){
-      clearNote();
-      clearVisual(activeCellsEl);
-      activeCellsEl = null; startIdx = endIdx = null;
-      const res=await fetch(`/api/availability?date=${datePick.value}`);
+      cellsEl.appendChild(c);
+    });
+  }
+  async function loadDay(){
+    clearNote(); clearVisual(activeCellsEl); activeCellsEl=null; startIdx=endIdx=null;
+    const res=await fetch(`/api/availability?date=${datePick.value}`); const data=await res.json();
+    const booked1=new Set(data.courts["1"]||[]), booked2=new Set(data.courts["2"]||[]);
+    buildCells(cells1,"1",booked1); buildCells(cells2,"2",booked2);
+  }
+  document.getElementById('confirmSel').onclick=async()=>{
+    if(!activeCellsEl||startIdx===null||endIdx===null) return;
+    const s=Math.min(startIdx,endIdx), e=Math.max(startIdx,endIdx);
+    const slots=SLOTS.slice(s,e+1); const court=activeCellsEl.dataset.court;
+    try{
+      const res=await fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({date:datePick.value,court,slots,name:nameInput.value.trim(),email:emailInput.value.trim()})});
       const data=await res.json();
-      const booked1=new Set(data.courts["1"]||[]);
-      const booked2=new Set(data.courts["2"]||[]);
-      buildCells(cells1,"1",booked1);
-      buildCells(cells2,"2",booked2);
-    }
+      if(!data.ok){const conf=data.conflicts?` Konflikt: <b>${data.conflicts.join(', ')}</b>.`:''; showNote('err',(data.error||'Rezervácia zlyhala.')+conf); return;}
+      const label=`${slots[0]} – ${nextTime(slots.at(-1))}`; showNote('ok',`Rezervované: <b>${label}</b> (${court==='1'?'Kurt 1':'Kurt 2'}).`);
+      await loadDay(); bookbar.style.display='none';
+    }catch{showNote('err','Chyba spojenia. Skúste znova.');}
+  };
+  document.getElementById('clearSel').onclick=()=>{ clearVisual(activeCellsEl); activeCellsEl=null; startIdx=endIdx=null; };
 
-    // ---------- booking ----------
-    document.getElementById('confirmSel').onclick = async ()=>{
-      if (!activeCellsEl || startIdx===null || endIdx===null) return;
-      const s = Math.min(startIdx, endIdx);
-      const e = Math.max(startIdx, endIdx);
-      const slots = SLOTS.slice(s, e+1);
-      const court = activeCellsEl.dataset.court;
+  function setToday(){const t="{{ today }}"; datePick.value=t; setHeader(t);}
+  function shift(n){const d=parse(datePick.value); d.setDate(d.getDate()+n); const v=fmt(d); datePick.value=v; setHeader(v);}
+  function setHeader(d){const dt=parse(d); dayName.textContent=["Nedeľa","Pondelok","Utorok","Streda","Štvrtok","Piatok","Sobota"][dt.getDay()].toUpperCase(); dayDate.textContent=dt.toLocaleDateString('sk-SK',{day:'2-digit',month:'2-digit',year:'numeric'});}
 
-      try{
-        const res=await fetch('/api/book',{
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({
-            date:datePick.value, court, slots,
-            name:nameInput.value.trim(), email:emailInput.value.trim()
-          })
-        });
-        const data=await res.json();
-        if(!data.ok){
-          const conf=data.conflicts?` Konflikt: <b>${data.conflicts.join(', ')}</b>.`:'';
-          showNote('err',(data.error||'Rezervácia zlyhala.')+conf);
-          return;
-        }
-        const label = `${slots[0]} – ${nextTime(slots.at(-1))}`;
-        showNote('ok', `Rezervované: <b>${label}</b> (${court==='1'?'Kurt 1':'Kurt 2'}).`);
-        await loadDay();
-        bookbar.style.display='none';
-      }catch(err){ showNote('err','Chyba spojenia. Skúste znova.'); }
-    };
-
-    document.getElementById('clearSel').onclick = ()=>{
-      clearVisual(activeCellsEl);
-      activeCellsEl = null; startIdx = endIdx = null;
-    };
-
-    // ---------- hours + date controls ----------
-    function setToday(){const t="{{ today }}"; datePick.value=t; setHeader(t);}
-    function shift(n){const d=parse(datePick.value); d.setDate(d.getDate()+n); const v=fmt(d); datePick.value=v; setHeader(v);}
-
-    // ---------- init ----------
-    document.getElementById('year').textContent=new Date().getFullYear();
-    renderHours(); setToday(); loadDay();
+  document.getElementById('year').textContent=new Date().getFullYear();
+  (function init(){
+    const spacer=document.createElement('div');spacer.style.gridColumn='1 / span 1';hoursEl.appendChild(spacer);
+    HOURS.forEach((h,i)=>{const div=document.createElement('div');div.className='hlabel';div.style.gridColumn=`${2+i*2} / span 2`;div.textContent=h;hoursEl.appendChild(div);});
+    setToday(); loadDay();
     todayBtn.onclick=()=>{ setToday(); loadDay(); };
     prevBtn.onclick =()=>{ shift(-1); loadDay(); };
     nextBtn.onclick =()=>{ shift(1);  loadDay(); };
     datePick.onchange =()=>{ setHeader(datePick.value); loadDay(); };
-  </script>
-</body>
-</html>
+  })();
+</script>
+{% endblock %}

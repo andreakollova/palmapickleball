@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Palma Pickleball</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#ffffff; --text:#111; --muted:#667085; --border:#e7e9ee;
+      --accent:#2f2bbd; --accent-ink:#fff;
+      --slot:#fff; --slot-dash:#d8dde6; --slot-active:#ecebff; --slot-book:#f3f4f7;
+      --shadow:0 10px 30px rgba(17,24,39,.08);
+      --band:#3b39d6;
+      --label-col: 115px;
+      --slot-h: 15px;
+    }
+    body{background:var(--bg); color:var(--text); font-family:'Inter',system-ui,sans-serif; line-height:1.6;}
+
+    /* NAVBAR */
+    .navbar{
+      border-bottom:1px solid var(--border);
+      background:rgba(255,255,255,.95);
+      backdrop-filter:blur(8px);
+    }
+    .navbar-brand img{height:70px;width:auto;transition:height .2s ease;}
+    .nav-link{color:#111; font-weight:400}
+    .nav-link:hover{color:var(--accent)}
+    .btn-outline-dark{border-color:#111;color:#111}
+    .btn-outline-dark:hover{background:#111;color:#fff}
+
+    /* Profile chip */
+    .profile-menu{
+      display:flex; align-items:center; gap:10px;
+      padding:4px 10px; border:1px solid var(--border);
+      border-radius:999px; background:#fff; text-decoration:none;
+      transition:box-shadow .15s ease, border-color .15s ease;
+    }
+    .profile-menu:hover{border-color:#d9dbe2; box-shadow:0 6px 20px rgba(16,24,40,.08);}
+    .profile-menu img{height:34px; width:34px; border-radius:50%; object-fit:cover;}
+    .profile-menu .name{color:#111; font-size:.95rem;}
+    .profile-menu .chev{color:#6b7280; font-size:1.15rem; line-height:1;}
+
+    /* MOBILE HEADER ROW */
+    .nav-mobile-row{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:8px; width:100%;}
+    .nav-mobile-row .navbar-brand{margin:0; justify-self:center;}
+    .nav-mobile-row .right{justify-self:end;}
+
+    @media (max-width: 991.98px){
+      .navbar-brand img{height:60px;}
+      .desktop-brand{display:none!important;}
+      .profile-menu .name{display:none;}
+      .profile-menu{padding:4px 8px; gap:8px;}
+      .profile-menu img{height:32px;width:32px;}
+    }
+    @media (max-width: 575.98px){
+      .navbar-brand img{height:52px;}
+      .btn-outline-dark{padding:6px 10px; font-size:.9rem;}
+    }
+
+    /* DAY BAR */
+    .daybar{position:sticky; top:70px; z-index:5; background:#fff; border-bottom:1px solid var(--border);}
+    .daybox{border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:10px 12px; margin-top:10px;
+            display:flex; justify-content:space-between; align-items:center; gap:12px;}
+    .day-title{font-weight:600}
+    .day-sub{color:var(--muted); font-size:.95rem}
+    .chip{border:1px solid var(--border); background:#fff; border-radius:10px; padding:6px 12px}
+    .navbtn{border:1px solid var(--border); background:#fff; border-radius:10px; width:38px; height:38px;
+            display:flex; align-items:center; justify-content:center; font-weight:600;}
+
+    /* ====== BOOKING (unchanged) ====== */
+    .timeline{padding:16px 0 22px; border-bottom:1px solid var(--border);}
+    .scroller{overflow-x:auto}
+    .grid-wrap{min-width:1200px}
+    .hours{
+      display:grid;
+      grid-template-columns: var(--label-col) repeat(26, 1fr);
+      column-gap:10px;
+      align-items:center;
+      margin-bottom:8px;
+    }
+    .hlabel{grid-column-end: span 2; text-align:center; color:#6b7280; font-size:.95rem}
+    .rowline{
+      display:grid;
+      grid-template-columns: var(--label-col) 1fr;
+      align-items:start;
+      column-gap:10px;
+      margin-bottom: calc(var(--slot-h) + 36px);
+    }
+    .courtname{display:flex; align-items:center; font-weight:600; color:#1f2937}
+    .cells{display:grid; grid-template-columns: repeat(26, 1fr); gap:8px; position:relative; min-height:72px;}
+    .cells.clickable{cursor: col-resize;}
+    .cell{
+      background:var(--slot);
+      border:1px dashed var(--slot-dash);
+      border-radius:14px;
+      min-height: var(--slot-h);
+      cursor:pointer;
+      transition:border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .15s ease;
+    }
+    .cell:hover{border-color:#c9ced7}
+    .cell.booked{background:var(--slot-book); border:1px solid #e1e4ea; cursor:not-allowed; color:#98a2b3}
+    .cell.active{background:var(--slot-active); border-color:#d5d4ff}
+    .underband{
+      position:absolute; height:12px; background:var(--band); border-radius:10px;
+      left:0; top: calc(56px + 6px);
+      box-shadow: 0 6px 16px rgba(47,43,189,.28);
+      pointer-events:none;
+      transition: left .06s linear, width .06s linear;
+    }
+    .timechip{
+      position:absolute; top: calc(56px + 24px);
+      background:#fff; color:#111; border:1px solid var(--border);
+      border-radius:999px; padding:2px 10px; font-size:.85rem; line-height:1.6; white-space:nowrap;
+      box-shadow:0 6px 16px rgba(16,24,40,.08);
+      pointer-events:none;
+      transition:left .06s linear;
+    }
+    .timechip.tight{font-size:.78rem; padding:1px 8px}
+    .bookbar{position:sticky; bottom:0; z-index:6; background:#fff; border-top:1px solid var(--border); padding:12px 0}
+    .note{border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:.95rem}
+    .note.ok{border-color:#bbf7d0; background:#f0fdf4; color:#166534}
+    .note.err{border-color:#fecaca; background:#fef2f2; color:#991b1b}
+
+    /* ====== FOOTER (responsive) ====== */
+    footer.site-footer{
+      background:#fafbff;
+      border-top:1px solid var(--border);
+      margin-top:48px;
+    }
+    .footer-top{ padding:40px 0 24px; }
+    .footer-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(220px,1fr));
+      gap:32px;
+    }
+    .footer-brand img{ height:56px; width:auto; filter:grayscale(100%); }
+    .footer-text{ color:var(--muted); font-size:.95rem; }
+    .footer-title{ font-weight:600; font-size:1rem; margin-bottom:.75rem; color:#111; }
+    .social a{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:36px; height:36px; border-radius:999px; border:1px solid var(--border);
+      margin-right:8px; color:#111; text-decoration:none; background:#fff;
+      transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .social a:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(16,24,40,.08); border-color:#dcdfe6; }
+    .newsletter .form-wrap{ display:flex; gap:8px; }
+    .newsletter .form-control{ border-color:var(--border); }
+    .newsletter .btn-dark{ padding:8px 14px; }
+    .footer-bottom{
+      border-top:1px solid var(--border);
+      padding:14px 0;
+      color:#6b7280; font-size:.9rem;
+    }
+    .footer-links{ display:flex; flex-wrap:wrap; gap:12px; }
+    .footer-links a{ color:#6b7280; text-decoration:none; }
+    .footer-links a:hover{ color:#111; text-decoration:underline; }
+    @media (max-width: 991.98px){
+      .footer-grid{ grid-template-columns:repeat(2, minmax(220px,1fr)); text-align:center; }
+      .footer-brand, .social{ justify-content:center; }
+      .social{ display:flex; justify-content:center; }
+    }
+    @media (max-width: 575.98px){
+      .footer-grid{ grid-template-columns:1fr; }
+      .newsletter .form-wrap{ flex-direction:column; }
+      .footer-bottom .container{ text-align:center; gap:10px; }
+      .footer-links{ justify-content:center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+    <div class="container">
+
+      <!-- MOBILE ROW -->
+      <div class="nav-mobile-row d-lg-none">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <a class="navbar-brand" href="#">
+          <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball">
+        </a>
+
+        <a href="#profile" class="profile-menu right">
+          <img src="{{ url_for('static', filename='images/profile1.png') }}" alt="Profil Andrea">
+          <span class="name">Andrea</span>
+          <span class="chev">›</span>
+        </a>
+      </div>
+
+      <!-- DESKTOP BRAND -->
+      <a class="navbar-brand desktop-brand d-none d-lg-flex align-items-center" href="#">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball logo">
+      </a>
+
+      <!-- COLLAPSE -->
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav me-auto mt-2 mt-lg-0">
+          <li class="nav-item"><a class="nav-link" href="#book">Rezervácie</a></li>
+          <li class="nav-item"><a class="nav-link" href="#membership">Členstvo</a></li>
+          <li class="nav-item"><a class="nav-link" href="#contact">Kontakt</a></li>
+        </ul>
+
+        <div class="d-none d-lg-flex align-items-center gap-2">
+          <a class="btn btn-outline-dark px-3 py-1" href="#book">Rezervovať</a>
+          <a href="#profile" class="profile-menu">
+            <img src="{{ url_for('static', filename='images/profile1.png') }}" alt="Profil Andrea">
+            <span class="name">Andrea</span>
+            <span class="chev">›</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  {% block content %}{% endblock %}
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-top">
+      <div class="footer-grid">
+        <!-- Brand & blurb -->
+        <div>
+          <div class="footer-brand d-flex align-items-center gap-2 mb-2">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball logo">
+          </div>
+          <p class="footer-text mb-3">
+            Moderný pickleball klub v Bratislave. Dva kurty, tréningy pre všetky úrovne, priateľská komunita.
+          </p>
+          <div class="social">
+            <a href="#" aria-label="Instagram" title="Instagram">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.8" stroke="currentColor" stroke-width="1.6"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor"/></svg>
+            </a>
+            <a href="#" aria-label="Facebook" title="Facebook">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14.5 8H16V5h-1.5C12.6 5 12 6.1 12 7.8V9H10v3h2v7h3v-7h1.9l.6-3H15V7.9c0-.6.2-.9.5-.9Z" fill="currentColor"/></svg>
+            </a>
+            <a href="#" aria-label="YouTube" title="YouTube">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M22 12s0-3.3-.4-4.9c-.2-.8-.9-1.5-1.7-1.7C17.3 4.9 12 4.9 12 4.9s-5.3 0-7.9.5c-.8.2-1.5.9-1.7 1.7C2 8.7 2 12 2 12s0 3.3.4 4.9c.2.8.9 1.5 1.7 1.7 2.6.5 7.9.5 7.9.5s5.3 0 7.9-.5c.8-.2 1.5-.9 1.7-1.7.4-1.6.4-4.9.4-4.9Z" stroke="currentColor"/><path d="M10 9.8v4.4l4.2-2.2L10 9.8Z" fill="currentColor"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Kontakt -->
+        <div>
+          <div class="footer-title">Kontakt</div>
+          <ul class="list-unstyled footer-text mb-0">
+            <li>Hala Palma, Račianska 12</li>
+            <li>821 02 Bratislava</li>
+            <li class="mt-2"><a href="mailto:info@palmapickleball.sk" class="text-decoration-none">info@palmapickleball.sk</a></li>
+            <li>+421 900 000 000</li>
+          </ul>
+        </div>
+
+        <!-- Otváracie hodiny -->
+        <div>
+          <div class="footer-title">Otváracie hodiny</div>
+          <ul class="list-unstyled footer-text mb-0">
+            <li>Pon – Pia: 08:00 – 21:30</li>
+            <li>Sobota: 09:00 – 20:00</li>
+            <li>Nedeľa: 09:00 – 20:00</li>
+          </ul>
+        </div>
+
+        <!-- Newsletter -->
+        <div>
+          <div class="footer-title">Novinky e-mailom</div>
+          <p class="footer-text">Tipy, turnaje a akcie. Žiadny spam.</p>
+          <form class="newsletter" onsubmit="event.preventDefault(); alert('Ďakujeme!');">
+            <div class="form-wrap">
+              <input type="email" class="form-control" placeholder="Váš e-mail" required>
+              <button class="btn btn-dark" type="submit">Prihlásiť</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-2">
+        <div>© <span id="year"></span> Palma Pickleball Bratislava</div>
+        <nav class="footer-links">
+          <a href="#">Ochrana súkromia</a>
+          <a href="#">Podmienky</a>
+          <a href="#">Cookies</a>
+          <a href="#book">Rezervácie</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
