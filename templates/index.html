@@ -36,12 +36,12 @@
 
   @media (max-width:575.98px){
     /* Title + actions stack and align to same left edge as “Dnes” */
-    .daybox{display:block; padding-top:27px;} /* more space ABOVE title on mobile */
-    .day-title{margin-bottom:2px;}            /* less space BELOW title on mobile */
-    .day-actions{gap:8px; margin-top:4px;}    /* tighten gap below title */
+    .daybox{display:block; padding-top:27px;}
+    .day-title{margin-bottom:2px;}
+    .day-actions{gap:8px; margin-top:4px;}
     #datePick{width:130px;min-width:130px;}
-    .chip .cal-ico{display:none;}             /* hide „Dnes“ icon */
-    .day-sub{display:none;}                   /* hide date + “Denný prehľad” on mobile */
+    .chip .cal-ico{display:none;}
+    .day-sub{display:none;}
   }
 
   /* Calendar card */
@@ -70,13 +70,13 @@
 
   /* Mobile dual-arrow nudge control (inline) */
   .nudge-group{
-    display:none;                /* desktop hidden */
+    display:none;
     align-items:center;
     border:1px solid var(--border);
     border-radius:999px;
     overflow:hidden;
     background:#fff;
-    box-shadow:none;             /* no blur on mobile */
+    box-shadow:none;
   }
   .nudge-btn{
     appearance:none; border:0; background:#fff;
@@ -91,16 +91,11 @@
   }
   .nudge-btn svg{width:16px;height:16px;}
 
-  /* ===== MOBILE-ONLY: keep “Voľné • Obsadené • Posuň” on ONE line ===== */
+  /* MOBILE: keep “Voľné • Obsadené • Posuň” on ONE line */
   @media (max-width:575.98px){
-    .legend{
-      flex-wrap:nowrap;
-      gap:8px;
-      padding:6px 4px 10px;
-      justify-content:space-between;
-    }
-    .legend .sel{display:none;}       /* hide „Vybrané“ on mobile */
-    .legend .hint{display:none;}      /* hide long hint on mobile */
+    .legend{flex-wrap:nowrap; gap:8px; padding:6px 4px 10px; justify-content:space-between;}
+    .legend .sel{display:none;}
+    .legend .hint{display:none;}
     .legend .i{font-size:.84rem; gap:6px;}
     .legend .dot{width:9px;height:9px;margin-right:6px;}
     .nudge-group{display:flex; flex:0 0 auto;}
@@ -109,12 +104,7 @@
   /* Grid */
   .scroller{overflow-x:auto;}
   @media (max-width:575.98px){
-    .scroller{
-      overflow-x:auto;
-      -webkit-overflow-scrolling:touch;
-      overscroll-behavior-x:contain;
-    }
-    /* bring hours a bit closer to “Kurt 1/2” */
+    .scroller{overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain;}
     .booking{ --label-col: 100px; }
     .hours{ column-gap:6px; }
     .rowline{ column-gap:6px; }
@@ -137,10 +127,69 @@
   }
   @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-  /* Book bar inputs on mobile */
-  @media (max-width:575.98px){
-    #bookbar .form-control{min-width:0;width:100%;}
-  }
+  /* ===== Book bar (bottom) ===== */
+  .btn-book{background:#3a38d6;border-color:#3a38d6;color:#fff;}
+  .btn-book:hover{background:#312fd1;border-color:#312fd1;color:#fff;}
+  #selSummary{font-size:1.05rem;}
+  #selSummary .meta{color:#667085;}
+  #selSummary .price{font-weight:700;}
+
+  /* ===== Popup (Rezervácia) ===== */
+  .text-accent{color:#3a38d6;}
+  .btn-accent{background:#3a38d6;border-color:#3a38d6;color:#fff;}
+  .btn-accent:hover{background:#312fd1;border-color:#312fd1;color:#fff;}
+  .modal-content{display:flex; max-height:92dvh; border-radius:16px;}
+  .modal-header{border-bottom:1px solid var(--border);}
+  .modal-body{overflow:auto; padding:16px;}
+  .modal-footer{border-top:1px solid var(--border); padding:12px 16px; gap:10px;}
+  .resv-summary{list-style:none;margin:0;padding:0;}
+  .resv-summary li{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+  .resv-summary li:last-child{border-bottom:0}
+  .sum-label{color:#667085;min-width:120px;}
+  .sum-value{color:#111;}
+  .sum-money{font-weight:700}
+  .sum-money .amount{color:#3a38d6;}
+  .court-photo{width:100%;height:auto;max-height:320px;object-fit:cover;border-radius:12px;background:#f6f7fb;}
+  @media (max-width:575.98px){.court-photo{max-height:220px;}}
+
+  @media (max-width: 575.98px){
+    /* stále skrývame dátum v mobile */
+    #selSummary .meta-date{ display:none; }
+
+    /* === Sticky bar, o kúsok vyššie nad spodkom === */
+    #bookbar{
+      position: sticky;
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      z-index: 30;
+      padding: 8px 0;                 /* o málo vyšší */
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.98));
+      backdrop-filter: saturate(180%) blur(8px); /* jemné sklo – ako predtým */
+    }
+
+    /* jedna línia, text vycentrovaný */
+    #bookbar .container{
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: space-between;  /* tlačidlá vpravo */
+      gap: 12px;
+    }
+
+    #selSummary{
+      flex: 1 1 auto;
+      margin: 0 auto;                  /* centrácia v bare */
+      text-align: center;              /* zarovnaj text na stred */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: .95rem;
+    }
+
+    #bookbar .d-flex.gap-2{
+      justify-content: center;
+      width: 100%;
+    }
+
+
 </style>
 
 <section class="booking" id="book">
@@ -217,15 +266,58 @@
   </div>
 </section>
 
-<!-- BOOK BAR (unchanged) -->
+<!-- BOOK BAR (summary only; no name/phone/email) -->
 <div id="bookbar" class="bookbar" style="display:none;">
   <div class="container d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2">
     <div id="selSummary" class="me-auto"></div>
-    <input id="name" class="form-control" placeholder="Meno (voliteľné)" style="max-width:260px;">
-    <input id="email" class="form-control" type="email" placeholder="E-mail (voliteľné)" style="max-width:260px;">
     <div class="d-flex gap-2">
       <button id="clearSel" class="btn btn-light border">Vymazať</button>
-      <button id="confirmSel" class="btn btn-dark">Rezervovať</button>
+      <button id="confirmSel" class="btn btn-book">Rezervovať</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Rezervácia popup ===== -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Rezervácia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavrieť"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-4">
+          <!-- Summary -->
+          <div class="col-12 col-lg-6">
+            <ul class="resv-summary">
+              <li><div class="sum-label">Kurt</div><div class="sum-value" id="mCourt">—</div></li>
+              <li><div class="sum-label">Dátum</div><div class="sum-value" id="mDate">—</div></li>
+              <li><div class="sum-label">Čas</div><div class="sum-value" id="mTime">—</div></li>
+              <li><div class="sum-label">Miesto</div><div class="sum-value">Račianska 12 (Areál Palmy), 831 02 Bratislava</div></li>
+              <li>
+                <div class="sum-label">Suma rezervácie</div>
+                <div class="sum-value sum-money"><span class="amount" id="mTotal">—</span></div>
+              </li>
+            </ul>
+
+            <div class="mt-4">
+              <label for="mNote" class="form-label">Poznámka (voliteľné)</label>
+              <textarea id="mNote" class="form-control" rows="4" placeholder="Poznámka k rezervácii"></textarea>
+            </div>
+          </div>
+
+          <!-- Court visual -->
+          <div class="col-12 col-lg-6">
+            <img id="mImg" class="court-photo" src="{{ url_for('static', filename='images/us1.png') }}" alt="Kurt">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-light border" data-bs-dismiss="modal">Zrušiť</button>
+        <button id="modalConfirmBtn" class="btn btn-accent">Prejsť do pokladne</button>
+      </div>
     </div>
   </div>
 </div>
@@ -259,8 +351,8 @@
   const cells2=document.getElementById('cells2');
   const bookbar=document.getElementById('bookbar');
   const selSummary=document.getElementById('selSummary');
-  const nameInput=document.getElementById('name');
-  const emailInput=document.getElementById('email');
+  const nameInput=document.getElementById('name');   // kept (not shown in footer)
+  const emailInput=document.getElementById('email'); // kept (not shown in footer)
   const datePick=document.getElementById('datePick');
   const todayBtn=document.getElementById('todayBtn');
   const prevBtn=document.getElementById('prevBtn');
@@ -272,7 +364,19 @@
   const nudgeLeft=document.getElementById('nudgeLeft');
   const nudgeRight=document.getElementById('nudgeRight');
 
+  /* Modal refs */
+  const modalEl = document.getElementById('confirmModal');
+  const modal = new bootstrap.Modal(modalEl);
+  const mCourt = document.getElementById('mCourt');
+  const mDate  = document.getElementById('mDate');
+  const mTime  = document.getElementById('mTime');
+  const mTotal = document.getElementById('mTotal');
+  const mImg   = document.getElementById('mImg');
+  const mNote  = document.getElementById('mNote');
+  const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+
   const skDays=["Nedeľa","Pondelok","Utorok","Streda","Štvrtok","Piatok","Sobota"];
+  const eur = new Intl.NumberFormat('sk-SK',{style:'currency',currency:'EUR'});
 
   function fmt(d){return d.toISOString().slice(0,10);}
   function parse(s){return new Date(s+"T00:00:00");}
@@ -284,9 +388,7 @@
     const isMobile=window.matchMedia("(max-width: 575.98px)").matches;
 
     if(isMobile){
-      /* Mobile: “NEDEĽA – rezervácia kurtov” and aligned with “Dnes” */
       dayName.textContent = `${dayStr.toUpperCase()} – rezervácia kurtov`;
-      /* date/subtitle hidden via CSS */
     }else{
       dayName.textContent = dayStr.toUpperCase();
       dayDate.textContent = dt.toLocaleDateString('sk-SK',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -333,7 +435,27 @@
       chip.classList.toggle('tight',chipW>bandW);
       chip.style.left=chipLeft+'px';
     });
-    selSummary.innerHTML=`<strong>${cellsEl.dataset.court==='1'?'Kurt 1':'Kurt 2'}</strong> • ${label}`;
+
+    /* === Bottom summary line (no inputs) === */
+    const courtName = cellsEl.dataset.court==='1' ? 'Kurt 1' : 'Kurt 2';
+    const dateStr   = new Date(datePick.value+"T00:00:00").toLocaleDateString('sk-SK',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const slotsCount = (Math.max(s,e) - Math.min(s,e) + 1); // each slot = 30 min
+    const price = eur.format(slotsCount * 15);              // 15 € per 30min
+
+    selSummary.innerHTML = `
+      <span class="fw-semibold">${courtName}</span>
+      <span class="mx-2">•</span>
+      <span>${label}</span>
+
+      <span class="meta-date">
+        <span class="mx-2">•</span>
+        <span class="meta">Dátum: ${dateStr}</span>
+      </span>
+
+      <span class="mx-2">•</span>
+      <span class="price">Cena: ${price}</span>
+    `;
+
     bookbar.style.display='block';
   }
   function isBooked(cellsEl,idx){return cellsEl.querySelectorAll('.cell')[idx].classList.contains('booked');}
@@ -373,25 +495,60 @@
     }
   }
 
-  document.getElementById('confirmSel').onclick=async()=>{
+  /* ===== Show summary popup, then confirm to book ===== */
+  document.getElementById('confirmSel').onclick=()=>{
     if(!activeCellsEl||startIdx===null||endIdx===null) return;
-    const s=Math.min(startIdx,endIdx), e=Math.max(startIdx,endIdx);
-    const slots=SLOTS.slice(s,e+1); const court=activeCellsEl.dataset.court;
-    try{
-      const res=await fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({date:datePick.value,court,slots,name:nameInput.value.trim(),email:emailInput.value.trim()})});
-      const data=await res.json();
-      if(!data.ok){
-        const conf=data.conflicts?` Konflikt: <b>${data.conflicts.join(', ')}</b>.`:'';
-        showNote('err',(data.error||'Rezervácia zlyhala.')+conf); return;
+
+    const s=Math.min(startIdx,endIdx),
+          e=Math.max(startIdx,endIdx);
+    const label=`${SLOTS[s]} – ${nextTime(SLOTS[e])}`;
+    const courtName = activeCellsEl.dataset.court==='1'?'Kurt 1':'Kurt 2';
+    const dateStr = new Date(datePick.value+"T00:00:00").toLocaleDateString('sk-SK',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const slotsCount = (e - s + 1);
+    const total = slotsCount * 15;
+
+    mCourt.textContent = courtName;
+    mDate.textContent  = dateStr;
+    mTime.textContent  = label;
+    mTotal.textContent = eur.format(total);
+    mImg.src = "{{ url_for('static', filename='__X__') }}".replace('__X__', activeCellsEl.dataset.court==='1'?'images/us1.png':'images/us2.png');
+    mNote.value = '';
+
+    modal.show();
+
+    modalConfirmBtn.onclick = async()=>{
+      const slots=SLOTS.slice(s,e+1);
+      try{
+        const res=await fetch('/api/book',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            date:datePick.value,
+            court: activeCellsEl.dataset.court,
+            slots,
+            name: nameInput.value.trim(),
+            email: emailInput.value.trim(),
+            note: mNote.value.trim()
+          })
+        });
+        const data=await res.json();
+        if(!data.ok){
+          const conf=data.conflicts?` Konflikt: <b>${data.conflicts.join(', ')}</b>.`:'';
+          showNote('err',(data.error||'Rezervácia zlyhala.')+conf);
+          modal.hide();
+          return;
+        }
+        const lbl=`${slots[0]} – ${nextTime(SLOTS.at(-1))}`;
+        showNote('ok',`Rezervované: <b>${lbl}</b> (${courtName}).`);
+        modal.hide();
+        await loadDay();
+        bookbar.style.display='none';
+      }catch{
+        modal.hide();
+        showNote('err','Chyba spojenia. Skúste znova.');
       }
-      const label=`${slots[0]} – ${nextTime(SLOTS[e])}`;
-      showNote('ok',`Rezervované: <b>${label}</b> (${court==='1'?'Kurt 1':'Kurt 2'}).`);
-      await loadDay(); bookbar.style.display='none';
-    }catch{
-      showNote('err','Chyba spojenia. Skúste znova.');
-    }
+    };
   };
+
   document.getElementById('clearSel').onclick=()=>{ clearVisual(activeCellsEl); activeCellsEl=null; startIdx=endIdx=null; };
 
   /* Today + shifting */
