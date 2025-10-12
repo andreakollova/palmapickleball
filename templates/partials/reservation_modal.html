@@ -1,45 +1,217 @@
 {# templates/partials/reservation_modal.html #}
-<!-- ===== Rezervácia popup (partial) ===== -->
+<!-- ================= Rezervácia (modern final, aligned) ================= -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Rezervácia</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavrieť"></button>
+  <div class="modal-dialog modal-dialog-centered modal-slim">
+    <div class="modal-content rezv">
+
+      <!-- Header -->
+      <div class="rezv__hdr">
+        <h5 class="rezv__title">Rezervácia</h5>
+        <button type="button" class="btn-close rezv__close" data-bs-dismiss="modal" aria-label="Zavrieť"></button>
       </div>
 
-      <div class="modal-body">
-        <div class="row g-4">
-          <!-- Summary -->
-          <div class="col-12 col-lg-6">
-            <ul class="resv-summary">
-              <li><div class="sum-label">Kurt</div><div class="sum-value" id="mCourt">—</div></li>
-              <li><div class="sum-label">Dátum</div><div class="sum-value" id="mDate">—</div></li>
-              <li><div class="sum-label">Čas</div><div class="sum-value" id="mTime">—</div></li>
-              <li><div class="sum-label">Miesto</div><div class="sum-value">Račianska 12 (Areál Palmy), 831 02 Bratislava</div></li>
-              <li>
-                <div class="sum-label">Suma rezervácie</div>
-                <div class="sum-value sum-money"><span class="amount" id="mTotal">—</span></div>
+      <!-- Body -->
+      <div class="rezv__body">
+        <div class="rezv__grid">
+          <!-- LEFT: summary -->
+          <section class="rezv__left">
+            <h6 class="rezv__sec">Sumár</h6>
+
+            <ul class="rezv__list">
+              <li class="rezv__row">
+                <div class="rezv__label">Kurt</div>
+                <div class="rezv__val" id="mCourt">—</div>
+              </li>
+
+              <li class="rezv__row">
+                <div class="rezv__label">Dátum</div>
+                <div class="rezv__val" id="mDate">—</div>
+              </li>
+
+              <li class="rezv__row">
+                <div class="rezv__label">Čas</div>
+                <div class="rezv__val" id="mTime">—</div>
+              </li>
+
+              <li class="rezv__row rezv__row--place">
+                <div class="rezv__label">Miesto</div>
+                <div class="rezv__val rezv__val--place">
+                  <div class="rezv__placeLine">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball" class="rezv__logo">
+                    <span class="rezv__placeName">Palma Pickleball Courts</span>
+                  </div>
+                  <div class="rezv__addr">Račianska 12 (Areál Palmy), <br>831 02, Bratislava</div>
+                </div>
+              </li>
+
+              <!-- HIGHLIGHTED total row (aligned to the same left edge) -->
+              <li class="rezv__row rezv__row--total rezv__align-left">
+                <div class="rezv__label">Suma rezervácie</div>
+                <div class="rezv__val rezv__val--accent">
+                  <i class="bi bi-cash-coin me-1" aria-hidden="true"></i>
+                  <span id="mTotal">—</span>
+                </div>
               </li>
             </ul>
 
-            <div class="mt-4">
-              <label for="mNote" class="form-label">Poznámka (voliteľné)</label>
-              <textarea id="mNote" class="form-control" rows="4" placeholder="Poznámka k rezervácii"></textarea>
+            <!-- Note block stretches to bottom -->
+            <div class="rezv__noteArea">
+              <label for="mNote" class="rezv__noteLbl">Poznámka (voliteľné)</label>
+              <textarea id="mNote" class="form-control rezv__note rezv__align-left" rows="1" placeholder="Poznámka k rezervácii"></textarea>
             </div>
-          </div>
+          </section>
 
-          <!-- Court visual -->
-          <div class="col-12 col-lg-6">
-            <img id="mImg" class="court-photo" src="{{ url_for('static', filename='images/us1.png') }}" alt="Kurt">
-          </div>
+          <!-- RIGHT: image -->
+          <section class="rezv__right">
+            <div class="rezv__media">
+              <div class="rezv__badge" id="mCourtBadge">Kurt</div>
+              <img id="mImg" class="rezv__photo" src="{{ url_for('static', filename='images/us1.png') }}" alt="Kurt">
+            </div>
+          </section>
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn btn-light border" data-bs-dismiss="modal">Zrušiť</button>
-        <button id="modalConfirmBtn" class="btn btn-accent">Prejsť do pokladne</button>
+      <!-- Footer -->
+      <div class="rezv__ftr">
+        <button class="btn btn-light border d-inline-flex align-items-center gap-2" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle" aria-hidden="true"></i>
+          Zrušiť rezerváciu
+        </button>
+        <button id="modalConfirmBtn" class="btn btn-accent d-inline-flex align-items-center gap-2">
+          <i class="bi bi-bag" aria-hidden="true"></i>
+          Prejsť do pokladne
+        </button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- ================= Styles (scoped to this modal) ================= -->
+<style>
+/* Accent + buttons */
+#confirmModal .text-accent{color:#3a38d6;}
+#confirmModal .btn-accent{background:#3a38d6;border-color:#3a38d6;color:#fff;}
+#confirmModal .btn-accent:hover{background:#312fd1;border-color:#312fd1;color:#fff;}
+
+/* Dialog width, spacing & rounding */
+#confirmModal .modal-slim{
+  max-width: 880px;
+  margin: 1.75rem auto;
+  padding: 0 1rem;
+}
+@media (max-width: 991.98px){ #confirmModal .modal-slim{max-width: 96vw; margin: 1rem auto;} }
+
+#confirmModal .rezv{
+  border:1px solid #e9ecf3; border-radius:14px;
+  overflow:hidden; display:flex; flex-direction:column;
+  max-height:92dvh; background:#fff; padding:8px 12px 12px;
+}
+
+/* Header */
+#confirmModal .rezv__hdr{
+  position:relative; padding:20px 22px; border-bottom:1px solid #eef1f6; text-align:center;
+}
+#confirmModal .rezv__title{
+  margin:0; font-size:1.08rem; font-weight:600; color:#0f172a; letter-spacing:0.01em;
+}
+#confirmModal .rezv__close{position:absolute; right:16px; top:16px;}
+
+/* Body + grid */
+#confirmModal .rezv__body{padding:18px 20px; overflow:auto;}
+#confirmModal .rezv__grid{
+  display:grid; gap:20px; grid-template-columns: 1.05fr 1fr; align-items:stretch;
+}
+@media (max-width: 991.98px){ #confirmModal .rezv__grid{grid-template-columns:1fr;} }
+
+/* Left column flex to allow note to stretch */
+#confirmModal .rezv__left{display:flex; flex-direction:column; min-height:100%;}
+#confirmModal .rezv__sec{margin:4px 0 10px; font-size:1.1rem; font-weight:650; color:#0f172a;}
+
+/* Rows */
+#confirmModal .rezv__list{list-style:none; margin:0 0 12px; padding:0; flex:0 0 auto;}
+#confirmModal .rezv__row{
+  --label-w: 160px;
+  display:grid; grid-template-columns: var(--label-w) 1fr; align-items:center;
+  gap:12px; padding:14px 0; border-bottom:1px solid #f0f2f6;
+}
+#confirmModal .rezv__row:last-child{border-bottom:0;}
+#confirmModal .rezv__label{color:#5b6472; font-weight:480; letter-spacing:.01em;}
+#confirmModal .rezv__val{color:#0f172a; font-weight:600; text-align:right;}
+
+/* One variable to make left edges match perfectly */
+#confirmModal .rezv__left{ --align-nudge: 10px; }  /* zväčši/zmenši podľa oka */
+
+/* Place block */
+#confirmModal .rezv__val--place{text-align:right;}
+#confirmModal .rezv__placeLine{display:flex; align-items:center; justify-content:flex-end; gap:8px;}
+#confirmModal .rezv__logo{height:18px; width:auto; opacity:.95;}
+#confirmModal .rezv__placeName{font-weight:600; color:#111827;}
+#confirmModal .rezv__addr{margin-top:2px; font-size:.9rem; color:#6b7280; font-weight:400;}
+
+/* Highlight total row – also aligned using the same nudge */
+#confirmModal .rezv__row--total{
+  padding:14px 12px; margin-top:8px;
+  border:1px solid #e0e4ff; border-radius:10px; background:linear-gradient(180deg,#f7f8ff,#f3f5ff);
+}
+#confirmModal .rezv__row--total.rezv__align-left{
+  margin-left:calc(-1 * var(--align-nudge));
+  width:calc(100% + var(--align-nudge));
+}
+#confirmModal .rezv__val--accent{color:#3a38d6; font-weight:700; display:inline-flex; align-items:center; justify-content:flex-end;}
+
+/* Note area fills remaining height */
+#confirmModal .rezv__noteArea{
+  margin-top:auto; display:flex; flex-direction:column; gap:6px; min-height:140px;
+}
+#confirmModal .rezv__noteLbl{display:block; color:#475467; font-weight:520; font-size:.9rem;}
+#confirmModal .rezv__note{
+  border:1px solid #e7e9f1; border-radius:12px; font-size:.94rem;
+  min-height:44px; height:100%; resize:none;
+}
+#confirmModal .rezv__note::placeholder{color:#98a2b3;}
+/* Align textarea border with the total card using the same nudge */
+#confirmModal .rezv__note.rezv__align-left{
+  margin-left:calc(-1 * var(--align-nudge));
+  width:calc(100% + var(--align-nudge));
+}
+
+/* Right side image fills remaining height */
+#confirmModal .rezv__right{display:flex; min-height:100%;}
+#confirmModal .rezv__media{
+  position:relative; border:1px solid #eef1f6; border-radius:12px;
+  overflow:hidden; background:#fafbff; flex:1 1 auto;
+}
+#confirmModal .rezv__photo{
+  width:100%; height:100%; object-fit:cover; min-height:300px;
+}
+@media (max-width: 991.98px){
+  #confirmModal .rezv__photo{height:auto; aspect-ratio: 3 / 2;}
+}
+#confirmModal .rezv__badge{
+  position:absolute; right:12px; top:12px; padding:.28rem .6rem;
+  border-radius:999px; background:#111827; color:#fff;
+  font-size:.82rem; font-weight:600; opacity:.95;
+}
+
+/* Footer */
+#confirmModal .rezv__ftr{
+  position:sticky; bottom:0; z-index:2;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:14px 20px; border-top:1px solid #eef1f6;
+  background:linear-gradient(180deg, rgba(255,255,255,.94), #fff);
+}
+</style>
+
+<!-- ================= JS: keep badge text in sync with court ================= -->
+<script>
+(function(){
+  const modal = document.getElementById('confirmModal');
+  const badge = document.getElementById('mCourtBadge');
+  const courtEl = document.getElementById('mCourt');
+  if(!modal || !badge || !courtEl) return;
+
+  const sync = () => { badge.textContent = (courtEl.textContent || 'Kurt').trim(); };
+  modal.addEventListener('shown.bs.modal', sync);
+  new MutationObserver(sync).observe(courtEl, {childList:true, characterData:true, subtree:true});
+})();
+</script>
