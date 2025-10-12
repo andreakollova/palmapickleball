@@ -1,4 +1,5 @@
 {# templates/partials/reservation_modal.html #}
+
 <!-- ================= Rezervácia (modern final, aligned) ================= -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-slim">
@@ -40,7 +41,7 @@
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball" class="rezv__logo">
                     <span class="rezv__placeName">Palma Pickleball Courts</span>
                   </div>
-                  <div class="rezv__addr">Račianska 12 (Areál Palmy), <br>831 02, Bratislava</div>
+                  <div class="rezv__addr">Račianska 12 (Areál Palmy)<br>831 02, Bratislava</div>
                 </div>
               </li>
 
@@ -57,7 +58,7 @@
             <!-- Note block stretches to bottom -->
             <div class="rezv__noteArea">
               <label for="mNote" class="rezv__noteLbl">Poznámka (voliteľné)</label>
-              <textarea id="mNote" class="form-control rezv__note rezv__align-left" rows="1" placeholder="Poznámka k rezervácii"></textarea>
+              <textarea id="mNote" class="form-control rezv__note rezv__align-left" rows="1" placeholder="Poznámka k rezervácii..."></textarea>
             </div>
           </section>
 
@@ -74,11 +75,10 @@
       <!-- Footer -->
       <div class="rezv__ftr">
         <button class="btn btn-light border d-inline-flex align-items-center gap-2" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle" aria-hidden="true"></i>
           Zrušiť rezerváciu
         </button>
         <button id="modalConfirmBtn" class="btn btn-accent d-inline-flex align-items-center gap-2">
-          <i class="bi bi-bag" aria-hidden="true"></i>
+          <i class="fa-solid fa-cart-shopping"></i>
           Prejsť do pokladne
         </button>
       </div>
@@ -135,7 +135,7 @@
   gap:12px; padding:14px 0; border-bottom:1px solid #f0f2f6;
 }
 #confirmModal .rezv__row:last-child{border-bottom:0;}
-#confirmModal .rezv__label{color:#5b6472; font-weight:480; letter-spacing:.01em;}
+#confirmModal .rezv__label{color:#5b6472; font-weight:400; letter-spacing:.01em;}
 #confirmModal .rezv__val{color:#0f172a; font-weight:600; text-align:right;}
 
 /* One variable to make left edges match perfectly */
@@ -185,7 +185,11 @@
   border:1px solid #e7e9f1; border-radius:12px; font-size:.94rem;
   min-height:44px; height:100%; resize:none;
 }
-#confirmModal .rezv__note::placeholder{color:#98a2b3;}
+#confirmModal .rezv__note::placeholder{
+  color:#98a2b3;
+  font-size:0.82rem;
+  opacity:0.9;
+}
 #confirmModal .rezv__note.rezv__align-left{
   margin-left:calc(-1 * var(--align-nudge));
   width:calc(100% + var(--align-nudge));
@@ -223,6 +227,15 @@
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   padding:14px 20px; border-top:1px solid #eef1f6;
   background:linear-gradient(180deg, rgba(255,255,255,.94), #fff);
+}
+
+#confirmModal .rezv__ftr .btn-light {
+  margin-left: -9px; /* tweak this value (e.g., -8px or -10px) until it looks perfect */
+}
+
+#confirmModal .rezv__ftr .btn-accent i.fa-cart-shopping {
+  font-size: 0.8rem;   /* smaller icon size (default ~1rem) */
+  margin-top: 1px;     /* optional: vertically center it nicely */
 }
 </style>
 
