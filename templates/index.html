@@ -201,21 +201,28 @@
         <div class="day-title h5 mb-1" id="dayName">—</div>
         <div class="day-sub"><span id="dayDate">—</span> • Denný prehľad</div>
       </div>
-      <div class="d-flex align-items-center gap-2 day-actions">
-        <button class="chip d-inline-flex align-items-center gap-1" id="todayBtn" title="Skok na dnešok">
-          <span class="cal-ico">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" stroke="#c9ced7"/><path d="M8 3v4M16 3v4M3 9h18" stroke="#c9ced7"/></svg>
-          </span>
-          Dnes
-        </button>
-        <button class="navbtn" id="prevBtn" aria-label="Predchádzajúci deň" title="Predchádzajúci deň">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <button class="navbtn" id="nextBtn" aria-label="Nasledujúci deň" title="Nasledujúci deň">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <input class="chip" type="date" id="datePick" aria-label="Vybrať dátum" />
-      </div>
+        <div class="d-flex align-items-center gap-2 day-actions">
+          <!-- Ľavá šípka -->
+          <button class="navbtn" id="prevBtn" aria-label="Predchádzajúci deň" title="Predchádzajúci deň">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 6l-6 6 6 6" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <!-- Tlačidlo Dnes -->
+          <button class="chip d-inline-flex align-items-center justify-content-center" id="todayBtn" title="Skok na dnešok">
+            Dnes
+          </button>
+
+          <!-- Pravá šípka -->
+          <button class="navbtn" id="nextBtn" aria-label="Nasledujúci deň" title="Nasledujúci deň">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <input class="chip" type="date" id="datePick" aria-label="Vybrať dátum" />
+        </div>
     </div>
 
     <!-- Calendar card -->
