@@ -139,7 +139,7 @@
 #confirmModal .rezv__val{color:#0f172a; font-weight:600; text-align:right;}
 
 /* One variable to make left edges match perfectly */
-#confirmModal .rezv__left{ --align-nudge: 10px; }  /* zväčši/zmenši podľa oka */
+#confirmModal .rezv__left{ --align-nudge: 10px; }  /* tweak if needed */
 
 /* Place block */
 #confirmModal .rezv__val--place{text-align:right;}
@@ -148,18 +148,35 @@
 #confirmModal .rezv__placeName{font-weight:600; color:#111827;}
 #confirmModal .rezv__addr{margin-top:2px; font-size:.9rem; color:#6b7280; font-weight:400;}
 
-/* Highlight total row – also aligned using the same nudge */
+/* === Total row: perfect 4-side border and left-edge alignment === */
 #confirmModal .rezv__row--total{
-  padding:14px 12px; margin-top:8px;
-  border:1px solid #e0e4ff; border-radius:10px; background:linear-gradient(180deg,#f7f8ff,#f3f5ff);
+  position:relative;
+  padding:14px 12px;               /* inner spacing */
+  margin-top:8px;
+  margin-bottom:12px;              /* space so bottom border is fully visible */
+  background:linear-gradient(180deg,#f7f8ff,#f3f5ff);
+  border:0;                        /* kill the default list divider */
+  border-radius:10px;
+  isolation:isolate;               /* keep pseudo-element neatly contained */
+}
+#confirmModal .rezv__row--total::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border:1px solid #dfe3ff;        /* uniform border on all sides */
+  border-radius:10px;
+  pointer-events:none;
 }
 #confirmModal .rezv__row--total.rezv__align-left{
   margin-left:calc(-1 * var(--align-nudge));
   width:calc(100% + var(--align-nudge));
 }
-#confirmModal .rezv__val--accent{color:#3a38d6; font-weight:700; display:inline-flex; align-items:center; justify-content:flex-end;}
+#confirmModal .rezv__val--accent{
+  color:#3a38d6; font-weight:700;
+  display:inline-flex; align-items:center; justify-content:flex-end;
+}
 
-/* Note area fills remaining height */
+/* Note area: align left edge exactly with the total card */
 #confirmModal .rezv__noteArea{
   margin-top:auto; display:flex; flex-direction:column; gap:6px; min-height:140px;
 }
@@ -169,7 +186,6 @@
   min-height:44px; height:100%; resize:none;
 }
 #confirmModal .rezv__note::placeholder{color:#98a2b3;}
-/* Align textarea border with the total card using the same nudge */
 #confirmModal .rezv__note.rezv__align-left{
   margin-left:calc(-1 * var(--align-nudge));
   width:calc(100% + var(--align-nudge));
@@ -177,16 +193,24 @@
 
 /* Right side image fills remaining height */
 #confirmModal .rezv__right{display:flex; min-height:100%;}
+/* Lock a fixed desktop height so both courts align exactly */
+#confirmModal .rezv__grid{ --media-h: 520px; }  /* adjust if desired */
+
 #confirmModal .rezv__media{
   position:relative; border:1px solid #eef1f6; border-radius:12px;
   overflow:hidden; background:#fafbff; flex:1 1 auto;
+  height: var(--media-h);                        /* <- FIX: use fixed height */
 }
+
 #confirmModal .rezv__photo{
-  width:100%; height:100%; object-fit:cover; min-height:300px;
+  width:100%; height:100%; object-fit:cover;
 }
+
 @media (max-width: 991.98px){
-  #confirmModal .rezv__photo{height:auto; aspect-ratio: 3 / 2;}
+  #confirmModal .rezv__media{ height: auto; }    /* mobile stays fluid */
+  #confirmModal .rezv__photo{ height:auto; aspect-ratio: 3 / 2; }
 }
+
 #confirmModal .rezv__badge{
   position:absolute; right:12px; top:12px; padding:.28rem .6rem;
   border-radius:999px; background:#111827; color:#fff;
