@@ -4,110 +4,144 @@
 
 <!-- Page-scoped styles (only for this page) -->
 <style>
-  /* Make the whole booking area one unified, wide section */
-  .booking {
+  /* Unified booking area */
+  .booking{
     background: linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
     padding: 8px 0 24px;
   }
-  /* use container-fluid for near-full-width layout */
-  /* after */
-  .booking .container-wide {
-    width: 100%;
-    max-width: 1600px;   /* keeps it centered on huge screens */
-    margin: 0 auto;      /* gives left/right margin */
-    padding-left: 24px;  /* small inner padding */
-    padding-right: 24px;
+  .booking .container-wide{
+    width:100%;
+    max-width:1600px;
+    margin:0 auto;
+    padding-left:24px;
+    padding-right:24px;
+  }
+  @media (max-width:575.98px){
+    .booking .container-wide{padding-left:16px;padding-right:16px;}
   }
 
-  @media (max-width: 575.98px){
-    .booking .container-wide {
-      padding-left: 16px;   /* a touch tighter on mobile */
-      padding-right: 16px;
-    }
+  /* Header (NOT sticky) */
+  .daybox{
+    border:1px solid var(--border);
+    border-radius:18px 18px 0 0;
+    background:#fff;
+    box-shadow:var(--shadow);
+    padding:14px 16px;
+    margin:0 auto;
+  }
+  .day-title{letter-spacing:.02em;}
+  .day-sub{font-size:.92rem;color:var(--muted);}
+  .day-actions .chip,.day-actions .navbtn{height:38px;}
+  .day-actions .chip svg,.day-actions .navbtn svg{width:16px;height:16px;}
+
+  @media (max-width:575.98px){
+    /* Title + actions stack and align to same left edge as “Dnes” */
+    .daybox{display:block;}
+    .day-actions{gap:8px; margin-top:8px;}
+    #datePick{width:130px;min-width:130px;}
+    .chip .cal-ico{display:none;}       /* hide „Dnes“ icon */
+    .day-sub{display:none;}             /* hide date + “Denný prehľad” on mobile */
   }
 
-  /* Header (date & controls) – NOT sticky, visually part of the card */
-  .daybox {
-    border: 1px solid var(--border);
-    border-radius: 18px 18px 0 0;
-    background: #fff;
-    box-shadow: var(--shadow);
-    padding: 14px 16px;
-    margin: 0 auto;
-  }
-  .day-title { letter-spacing: .02em; }
-  .day-sub   { font-size: .92rem; color: var(--muted); }
-  .day-actions .chip,
-  .day-actions .navbtn { height: 38px; }
-  .day-actions .chip svg,
-  .day-actions .navbtn svg { width:16px; height:16px; }
-
-  /* Calendar shell card, directly attached to header card */
-  .card-wrap {
-    border: 1px solid var(--border);
-    border-top: none; /* merges with header card */
-    border-radius: 0 0 18px 18px;
-    background: #fff;
-    box-shadow: var(--shadow);
-    padding: 12px 14px 8px;
-    margin: 0 auto;
+  /* Calendar card */
+  .card-wrap{
+    border:1px solid var(--border);
+    border-top:none;
+    border-radius:0 0 18px 18px;
+    background:#fff;
+    box-shadow:var(--shadow);
+    padding:12px 14px 8px;
+    margin:0 auto;
   }
 
   /* Legend */
-  .legend {
+  .legend{
     display:flex; align-items:center; gap:14px; flex-wrap:wrap;
-    padding: 6px 6px 10px 6px; border-bottom:1px dashed var(--border);
-    margin: 0 0 10px 0;
+    padding:6px 6px 10px 6px; border-bottom:1px dashed var(--border);
+    margin:0 0 10px 0;
   }
-  .legend .i { display:flex; align-items:center; gap:8px; color:#475467; font-size:.9rem; }
-  .legend .dot {
-    width:12px; height:12px; border-radius:999px; display:inline-block; margin-right:8px;
-    border:1px solid var(--slot-dash);
+  .legend .i{display:flex; align-items:center; gap:8px; color:#475467; font-size:.9rem;}
+  .legend .dot{width:12px;height:12px;border-radius:999px;display:inline-block;margin-right:8px;border:1px solid var(--slot-dash);}
+  .legend .free .dot{background:#fff;}
+  .legend .sel  .dot{background:var(--slot-active);border-color:#d5d4ff;}
+  .legend .book .dot{background:var(--slot-book);border-color:#e1e4ea;}
+  .legend .hint{margin-left:auto;color:#667085;font-size:.88rem;}
+
+  /* Mobile dual-arrow nudge control (inline) */
+  .nudge-group{
+    display:none;                /* desktop hidden */
+    align-items:center;
+    border:1px solid var(--border);
+    border-radius:999px;
+    overflow:hidden;
+    background:#fff;
+    box-shadow:none;             /* ✨ no blur on mobile as requested */
   }
-  .legend .free  .dot{ background:#fff; }
-  .legend .sel   .dot{ background:var(--slot-active); border-color:#d5d4ff; }
-  .legend .book  .dot{ background:var(--slot-book); border-color:#e1e4ea; }
-  .legend .hint { margin-left:auto; color:#667085; font-size:.88rem; }
+  .nudge-btn{
+    appearance:none; border:0; background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    width:36px; height:32px; padding:0; cursor:pointer;
+  }
+  .nudge-btn:hover{background:#f9fafb;}
+  .nudge-label{
+    padding:0 10px; font-size:.82rem; color:#111; white-space:nowrap;
+    border-left:1px solid var(--border); border-right:1px solid var(--border);
+    height:32px; display:flex; align-items:center;
+  }
+  .nudge-btn svg{width:16px;height:16px;}
 
-  /* Grid area – keep your existing layout but give it air horizontally */
-  .scroller { overflow-x: auto; }
-  .grid-wrap { min-width: 1200px; }
+  /* ===== MOBILE-ONLY: keep “Voľné • Obsadené • Posuň” on ONE line ===== */
+  @media (max-width:575.98px){
+    .legend{
+      flex-wrap:nowrap;
+      gap:8px;
+      padding:6px 4px 10px;
+      justify-content:space-between;
+    }
+    .legend .sel{display:none;}       /* hide „Vybrané“ on mobile */
+    .legend .hint{display:none;}      /* hide long hint on mobile */
+    .legend .i{font-size:.84rem; gap:6px;}
+    .legend .dot{width:9px;height:9px;margin-right:6px;}
+    .nudge-group{display:flex; flex:0 0 auto;}
+  }
 
-  .hours   { margin-bottom: 10px; }
-  .hlabel  { font-size: .92rem; }
+  /* Grid */
+  .scroller{overflow-x:auto;}
+  @media (max-width:575.98px){
+    .scroller{
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      overscroll-behavior-x:contain;
+    }
+    /* bring hours a bit closer to “Kurt 1/2” */
+    .booking{ --label-col: 100px; }
+    .hours{ column-gap:6px; }
+    .rowline{ column-gap:6px; }
+  }
+  .grid-wrap{min-width:1200px;}
+  .hours{margin-bottom:10px;}
+  .hlabel{font-size:.92rem;}
+  .rowline .courtname{font-size:.98rem; letter-spacing:.01em;}
+  .cells{gap:6px; position:relative;}
+  .rowline{margin-bottom:calc(var(--slot-h) + 28px);}
+  #feedback{margin-left:var(--label-col);}
 
-  .rowline .courtname { font-size: .98rem; letter-spacing: .01em; }
-
-  /* Slightly tighter gaps to use space better */
-  .cells { gap: 6px; position: relative; }
-  .rowline { margin-bottom: calc(var(--slot-h) + 28px); }
-
-  /* Feedback message aligns with grid */
-  #feedback { margin-left: var(--label-col); }
-
-  /* Loading shimmer (optional nicety) */
+  /* Loading shimmer */
   .grid-wrap.loading .cells::before,
-  .grid-wrap.loading .hours::before {
-    content:"";
-    display:block;
-    height:8px;
-    border-radius:8px;
-    background: linear-gradient(90deg, #f3f4f6, #eef0f5, #f3f4f6);
-    background-size: 200% 100%;
-    animation: shimmer 1.1s infinite linear;
-    grid-column: 1 / -1;
-    margin: 8px 0;
+  .grid-wrap.loading .hours::before{
+    content:""; display:block; height:8px; border-radius:8px;
+    background:linear-gradient(90deg,#f3f4f6,#eef0f5,#f3f4f6);
+    background-size:200% 100%; animation:shimmer 1.1s infinite linear;
+    grid-column:1 / -1; margin:8px 0;
   }
-  @keyframes shimmer { 0%{background-position: 200% 0} 100%{background-position: -200% 0} }
+  @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-  /* Book bar inputs on mobile stretch nicely */
-  @media (max-width: 575.98px){
-    .day-actions { width:100%; justify-content: space-between; }
-    #bookbar .form-control { min-width: 0; width: 100%; }
+  /* Book bar inputs on mobile */
+  @media (max-width:575.98px){
+    #bookbar .form-control{min-width:0;width:100%;}
   }
 </style>
 
-<!-- ===== UNIFIED BOOKING SECTION (header + calendar together, wide) ===== -->
 <section class="booking" id="book">
   <div class="container-wide">
 
@@ -119,7 +153,9 @@
       </div>
       <div class="d-flex align-items-center gap-2 day-actions">
         <button class="chip d-inline-flex align-items-center gap-1" id="todayBtn" title="Skok na dnešok">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" stroke="#c9ced7"/><path d="M8 3v4M16 3v4M3 9h18" stroke="#c9ced7"/></svg>
+          <span class="cal-ico">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" stroke="#c9ced7"/><path d="M8 3v4M16 3v4M3 9h18" stroke="#c9ced7"/></svg>
+          </span>
           Dnes
         </button>
         <button class="navbtn" id="prevBtn" aria-label="Predchádzajúci deň" title="Predchádzajúci deň">
@@ -132,18 +168,33 @@
       </div>
     </div>
 
-    <!-- Calendar card (attached to header card) -->
+    <!-- Calendar card -->
     <div class="card-wrap">
-      <!-- Legend -->
       <div class="legend">
         <div class="i free"><span class="dot"></span>Voľné</div>
         <div class="i sel"><span class="dot"></span>Vybrané</div>
         <div class="i book"><span class="dot"></span>Obsadené</div>
-        <div class="hint d-none d-md-block">Tip: klikni na susedné sloty na rozšírenie alebo na okraj na zúženie.</div>
+
+        <!-- Dual-arrow nudge control (mobile inline) -->
+        <div class="nudge-group ms-auto" role="group" aria-label="Posuň kalendár">
+          <button class="nudge-btn" type="button" id="nudgeLeft" aria-label="Posunúť doľava">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 6l-6 6 6 6" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <span class="nudge-label">Posuň</span>
+          <button class="nudge-btn" type="button" id="nudgeRight" aria-label="Posunúť doprava">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="hint">Tip: klikni na susedné sloty na rozšírenie alebo na okraj na zúženie.</div>
       </div>
 
       <!-- Timeline grid -->
-      <div class="scroller">
+      <div class="scroller" id="calendarScroller">
         <div class="grid-wrap loading" id="gridWrap">
           <div class="hours" id="hours" aria-hidden="true"></div>
 
@@ -216,19 +267,37 @@
   const dayName=document.getElementById('dayName');
   const dayDate=document.getElementById('dayDate');
   const gridWrap=document.getElementById('gridWrap');
+  const scroller=document.getElementById('calendarScroller');
+  const nudgeLeft=document.getElementById('nudgeLeft');
+  const nudgeRight=document.getElementById('nudgeRight');
+
   const skDays=["Nedeľa","Pondelok","Utorok","Streda","Štvrtok","Piatok","Sobota"];
 
   function fmt(d){return d.toISOString().slice(0,10);}
   function parse(s){return new Date(s+"T00:00:00");}
   function nextTime(t){const [h,m]=t.split(':').map(Number);let H=h,M=m+30;if(M===60){H++;M=0}return `${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}`;}
-  function setHeader(d){const dt=parse(d);dayName.textContent=skDays[dt.getDay()].toUpperCase();dayDate.textContent=dt.toLocaleDateString('sk-SK',{day:'2-digit',month:'2-digit',year:'numeric'});}
+
+  function setHeader(d){
+    const dt=parse(d);
+    const dayStr=skDays[dt.getDay()];
+    const isMobile=window.matchMedia("(max-width: 575.98px)").matches;
+
+    if(isMobile){
+      /* Mobile: “Nedeľa – rezervácia kurtov” */
+      dayName.textContent = `${dayStr} – rezervácia kurtov`;
+      /* hide day-sub via CSS already */
+    }else{
+      dayName.textContent = dayStr.toUpperCase();
+      dayDate.textContent = dt.toLocaleDateString('sk-SK',{day:'2-digit',month:'2-digit',year:'numeric'});
+    }
+  }
+
   function showNote(type,html){const fb=document.getElementById('feedback');fb.style.display='block';fb.className='note '+(type==='ok'?'ok':'err');fb.innerHTML=html}
   function clearNote(){const fb=document.getElementById('feedback');fb.style.display='none';fb.className='';fb.innerHTML=''}
 
   function renderHours(){
     hoursEl.innerHTML='';
-    const spacer=document.createElement('div');
-    spacer.style.gridColumn='1 / span 1';hoursEl.appendChild(spacer);
+    const spacer=document.createElement('div');spacer.style.gridColumn='1 / span 1';hoursEl.appendChild(spacer);
     HOURS.forEach((h,i)=>{
       const div=document.createElement('div');
       div.className='hlabel';
@@ -299,7 +368,7 @@
       const booked1=new Set(data.courts["1"]||[]), booked2=new Set(data.courts["2"]||[]);
       buildCells(cells1,"1",booked1); buildCells(cells2,"2",booked2);
     } finally {
-      setTimeout(()=>gridWrap.classList.remove('loading'), 150);
+      setTimeout(()=>gridWrap.classList.remove('loading'),150);
     }
   }
 
@@ -315,7 +384,7 @@
         const conf=data.conflicts?` Konflikt: <b>${data.conflicts.join(', ')}</b>.`:'';
         showNote('err',(data.error||'Rezervácia zlyhala.')+conf); return;
       }
-      const label=`${slots[0]} – ${nextTime(slots.at(-1))}`;
+      const label=`${slots[0]} – ${nextTime(SLOTS[e])}`;
       showNote('ok',`Rezervované: <b>${label}</b> (${court==='1'?'Kurt 1':'Kurt 2'}).`);
       await loadDay(); bookbar.style.display='none';
     }catch{
@@ -324,9 +393,11 @@
   };
   document.getElementById('clearSel').onclick=()=>{ clearVisual(activeCellsEl); activeCellsEl=null; startIdx=endIdx=null; };
 
+  /* Today + shifting */
   function setToday(){const t="{{ today }}"; datePick.value=t; setHeader(t);}
   function shift(n){const d=parse(datePick.value); d.setDate(d.getDate()+n); const v=fmt(d); datePick.value=v; setHeader(v);}
 
+  /* Init */
   document.getElementById('year').textContent=new Date().getFullYear();
   (function init(){
     renderHours();
@@ -335,6 +406,17 @@
     prevBtn.onclick =()=>{ shift(-1); loadDay(); };
     nextBtn.onclick =()=>{ shift(1);  loadDay(); };
     datePick.onchange =()=>{ setHeader(datePick.value); loadDay(); };
+    window.addEventListener('resize',()=>setHeader(datePick.value));
   })();
+
+  /* Mobile dual-arrow scroll */
+  function nudge(dir){
+    const step = Math.max(240, Math.min(0.7 * window.innerWidth, 420));
+    scroller.scrollBy({ left: dir === 'right' ? step : -step, behavior: 'smooth' });
+  }
+  if(nudgeLeft && nudgeRight && scroller){
+    nudgeLeft.addEventListener('click', ()=>nudge('left'));
+    nudgeRight.addEventListener('click', ()=>nudge('right'));
+  }
 </script>
 {% endblock %}
