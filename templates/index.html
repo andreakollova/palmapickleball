@@ -16,6 +16,9 @@
       --slot:#fff; --slot-dash:#d8dde6; --slot-active:#ecebff; --slot-book:#f3f4f7;
       --shadow:0 10px 30px rgba(17,24,39,.08);
       --band:#3b39d6;
+      --label-col: 115px;
+      --slot-h: 15px;
+
     }
     body{background:var(--bg); color:var(--text); font-family:'Inter',system-ui,sans-serif; line-height:1.6;}
 
@@ -44,11 +47,23 @@
     .scroller{overflow-x:auto}
     .grid-wrap{min-width:1200px}
 
-    .hours{display:grid; grid-template-columns: 160px repeat(26, 1fr); column-gap:10px; align-items:center; margin-bottom:8px;}
+    .hours{
+      display:grid;
+      grid-template-columns: var(--label-col) repeat(26, 1fr);
+      column-gap:10px;
+      align-items:center;
+      margin-bottom:8px;
+    }
     .hlabel{grid-column-end: span 2; text-align:center; color:#6b7280; font-size:.95rem}
 
     /* More vertical space so Kurt 2 fits under bands/captions */
-    .rowline{display:grid; grid-template-columns: 160px 1fr; align-items:start; column-gap:10px; margin-bottom:72px;}
+    .rowline{
+      display:grid;
+      grid-template-columns: var(--label-col) 1fr;
+      align-items:start;
+      column-gap:10px;
+      margin-bottom: calc(var(--slot-h) + 36px);
+    }
     .courtname{display:flex; align-items:center; font-weight:600; color:#1f2937}
     .cells{display:grid; grid-template-columns: repeat(26, 1fr); gap:10px; position:relative; min-height:72px;}
     .cells.clickable{cursor: col-resize;} /* subtle hint that you can adjust via adjacent clicks */
@@ -57,7 +72,7 @@
       background:var(--slot);
       border:1px dashed var(--slot-dash);
       border-radius:14px;
-      min-height:56px;
+      min-height: var(--slot-h);
       cursor:pointer;
       transition:border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .15s ease;
     }
