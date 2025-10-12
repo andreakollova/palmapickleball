@@ -37,11 +37,21 @@
               <li class="rezv__row rezv__row--place">
                 <div class="rezv__label">Miesto</div>
                 <div class="rezv__val rezv__val--place">
+                  <!-- Desktop line (name + logo); “ Courts” added via CSS on desktop -->
                   <div class="rezv__placeLine">
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball" class="rezv__logo">
-                    <span class="rezv__placeName">Palma Pickleball Courts</span>
+                    <span class="rezv__placeName">Palma Pickleball</span>
                   </div>
-                  <div class="rezv__addr">Račianska 12 (Areál Palmy)<br>831 02, Bratislava</div>
+
+                  <!-- Address block: used on mobile (and also visible under desktop line) -->
+                  <div class="rezv__addr">
+                    <!-- Mobile-only inline logo -->
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="" class="addr-logo" aria-hidden="true">
+                    <span class="addr-name">Palma Pickleball</span><br>
+                    <span class="addr-street">Račianska 12</span><br>
+                    <span class="addr-area">(Areál Palmy)</span><br>
+                    <span class="addr-zip">831 02, Bratislava</span>
+                  </div>
                 </div>
               </li>
 
@@ -75,11 +85,13 @@
       <!-- Footer -->
       <div class="rezv__ftr">
         <button class="btn btn-light border d-inline-flex align-items-center gap-2" data-bs-dismiss="modal">
-          Zrušiť rezerváciu
+          <span class="lbl-dt">Zrušiť rezerváciu</span>
+          <span class="lbl-mob">Zrušiť</span>
         </button>
         <button id="modalConfirmBtn" class="btn btn-accent d-inline-flex align-items-center gap-2">
           <i class="fa-solid fa-cart-shopping"></i>
-          Prejsť do pokladne
+          <span class="lbl-dt">Prejsť do pokladne</span>
+          <span class="lbl-mob">Do pokladne</span>
         </button>
       </div>
     </div>
@@ -138,32 +150,39 @@
 #confirmModal .rezv__label{color:#5b6472; font-weight:400; letter-spacing:.01em;}
 #confirmModal .rezv__val{color:#0f172a; font-weight:600; text-align:right;}
 
+/* Add “ Courts” after place name on DESKTOP only */
+@media (min-width: 576px){
+  #confirmModal .rezv__placeName::after{ content:" Courts"; }
+}
+
 /* One variable to make left edges match perfectly */
 #confirmModal .rezv__left{ --align-nudge: 10px; }  /* tweak if needed */
 
-/* Place block */
+/* Place block (desktop defaults) */
 #confirmModal .rezv__val--place{text-align:right;}
 #confirmModal .rezv__placeLine{display:flex; align-items:center; justify-content:flex-end; gap:8px;}
 #confirmModal .rezv__logo{height:18px; width:auto; opacity:.95;}
 #confirmModal .rezv__placeName{font-weight:600; color:#111827;}
 #confirmModal .rezv__addr{margin-top:2px; font-size:.9rem; color:#6b7280; font-weight:400;}
+#confirmModal .addr-logo{display:none; height:14px; width:auto; margin-right:6px; vertical-align:baseline;}
 
 /* === Total row: perfect 4-side border and left-edge alignment === */
 #confirmModal .rezv__row--total{
   position:relative;
-  padding:14px 12px;               /* inner spacing */
+  padding:14px 12px;
   margin-top:8px;
-  margin-bottom:12px;              /* space so bottom border is fully visible */
+  margin-bottom:12px;
   background:linear-gradient(180deg,#f7f8ff,#f3f5ff);
-  border:0;                        /* kill the default list divider */
+  border:0;
   border-radius:10px;
-  isolation:isolate;               /* keep pseudo-element neatly contained */
+  isolation:isolate;
+  white-space:nowrap;            /* keep label on one line */
 }
 #confirmModal .rezv__row--total::after{
   content:"";
   position:absolute;
   inset:0;
-  border:1px solid #dfe3ff;        /* uniform border on all sides */
+  border:1px solid #dfe3ff;
   border-radius:10px;
   pointer-events:none;
 }
@@ -176,7 +195,7 @@
   display:inline-flex; align-items:center; justify-content:flex-end;
 }
 
-/* Note area: align left edge exactly with the total card */
+/* Note area */
 #confirmModal .rezv__noteArea{
   margin-top:auto; display:flex; flex-direction:column; gap:6px; min-height:140px;
 }
@@ -198,20 +217,17 @@
 /* Right side image fills remaining height */
 #confirmModal .rezv__right{display:flex; min-height:100%;}
 /* Lock a fixed desktop height so both courts align exactly */
-#confirmModal .rezv__grid{ --media-h: 520px; }  /* adjust if desired */
+#confirmModal .rezv__grid{ --media-h: 520px; }
 
 #confirmModal .rezv__media{
   position:relative; border:1px solid #eef1f6; border-radius:12px;
   overflow:hidden; background:#fafbff; flex:1 1 auto;
-  height: var(--media-h);                        /* <- FIX: use fixed height */
+  height: var(--media-h);
 }
-
-#confirmModal .rezv__photo{
-  width:100%; height:100%; object-fit:cover;
-}
+#confirmModal .rezv__photo{ width:100%; height:100%; object-fit:cover; }
 
 @media (max-width: 991.98px){
-  #confirmModal .rezv__media{ height: auto; }    /* mobile stays fluid */
+  #confirmModal .rezv__media{ height: auto; }
   #confirmModal .rezv__photo{ height:auto; aspect-ratio: 3 / 2; }
 }
 
@@ -228,14 +244,78 @@
   padding:14px 20px; border-top:1px solid #eef1f6;
   background:linear-gradient(180deg, rgba(255,255,255,.94), #fff);
 }
+#confirmModal .rezv__ftr .btn-light { margin-left:-9px; }
+#confirmModal .rezv__ftr .btn-accent i.fa-cart-shopping{ font-size:.8rem; margin-top:1px; }
 
-#confirmModal .rezv__ftr .btn-light {
-  margin-left: -9px; /* tweak this value (e.g., -8px or -10px) until it looks perfect */
+/* ====== MOBILE-ONLY LAYOUT TWEAKS ====== */
+@media (max-width: 575.98px){
+
+  /* Less padding above/below “Sumár” */
+  #confirmModal .rezv__sec{ margin:2px 0 6px; }
+
+  /* More room for labels/values */
+  #confirmModal .rezv__row{ --label-w: 120px; gap:8px; }
+
+  /* MOBILE place block: right-aligned, bold name, smaller rest, show small logo */
+  #confirmModal .rezv__placeLine{ display:none; }      /* hide desktop header line */
+  #confirmModal .rezv__val--place{ text-align:right; }
+  #confirmModal .rezv__addr{
+    margin-top:0;
+    font-size:.88rem;
+    line-height:1.28;
+    color:#4b5563;
+  }
+  #confirmModal .addr-logo{ display:inline-block; height:14px; margin-right:6px; opacity:.95; position:relative; top:1px; }
+  #confirmModal .addr-name{ font-weight:700; color:#111827; font-size:.95rem; }
+  #confirmModal .addr-street,
+  #confirmModal .addr-area,
+  #confirmModal .addr-zip{ font-weight:400; color:#6b7280; }
+
+  /* SWAP order: image ABOVE note */
+  #confirmModal .rezv__grid{
+    display:grid;
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "sec"
+      "list"
+      "media"
+      "note";
+    row-gap:14px;
+  }
+  #confirmModal .rezv__left{ display:contents; }
+  #confirmModal .rezv__sec{ grid-area:sec; }
+  #confirmModal .rezv__list{ grid-area:list; }
+  #confirmModal .rezv__right{ grid-area:media; }
+  #confirmModal .rezv__noteArea{ grid-area:note; min-height:110px; }
+
+  /* Align left edges for total & textarea; keep total on one line and push amount farther right */
+  #confirmModal .rezv__left{ --align-nudge: 10px; }
+  #confirmModal .rezv__row--total{ white-space:nowrap; padding-right:4px; } /* smaller right padding -> amount sits further right */
+  #confirmModal .rezv__row--total.rezv__align-left{
+    margin-left:calc(-1 * var(--align-nudge));
+    width:calc(100% + var(--align-nudge));
+  }
+  #confirmModal .rezv__note.rezv__align-left{
+    margin-left:calc(-1 * var(--align-nudge));
+    width:calc(100% + var(--align-nudge));
+  }
+
+  /* IMAGE: shift left & up a bit; align with footer buttons on the left */
+  #confirmModal .rezv__media{
+    margin-left:-10px;
+    width:calc(100% + 10px);
+    margin-top:-8px;
+  }
+
+  /* Mobile button labels (short) */
+  #confirmModal .lbl-dt{ display:none; }
+  #confirmModal .lbl-mob{ display:inline; }
 }
 
-#confirmModal .rezv__ftr .btn-accent i.fa-cart-shopping {
-  font-size: 0.8rem;   /* smaller icon size (default ~1rem) */
-  margin-top: 1px;     /* optional: vertically center it nicely */
+/* Desktop labels (default) */
+@media (min-width: 576px){
+  #confirmModal .lbl-dt{ display:inline; }
+  #confirmModal .lbl-mob{ display:none; }
 }
 </style>
 
