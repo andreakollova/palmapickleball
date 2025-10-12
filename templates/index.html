@@ -2,79 +2,203 @@
 
 {% block content %}
 
-  <!-- DAY BAR -->
-  <section id="book" class="daybar">
-    <div class="container">
-      <div class="daybox">
-        <div>
-          <div class="day-title" id="dayName">—</div>
-          <div class="day-sub"><span id="dayDate">—</span> • Denný prehľad</div>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          <button class="chip" id="todayBtn">Dnes</button>
-          <button class="navbtn" id="prevBtn" aria-label="Predchádzajúci deň">‹</button>
-          <button class="navbtn" id="nextBtn" aria-label="Nasledujúci deň">›</button>
-          <input class="chip" type="date" id="datePick" />
+<!-- Page-scoped styles (only for this page) -->
+<style>
+  /* Make the whole booking area one unified, wide section */
+  .booking {
+    background: linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
+    padding: 8px 0 24px;
+  }
+  /* use container-fluid for near-full-width layout */
+  /* after */
+  .booking .container-wide {
+    width: 100%;
+    max-width: 1600px;   /* keeps it centered on huge screens */
+    margin: 0 auto;      /* gives left/right margin */
+    padding-left: 24px;  /* small inner padding */
+    padding-right: 24px;
+  }
+
+  @media (max-width: 575.98px){
+    .booking .container-wide {
+      padding-left: 16px;   /* a touch tighter on mobile */
+      padding-right: 16px;
+    }
+  }
+
+  /* Header (date & controls) – NOT sticky, visually part of the card */
+  .daybox {
+    border: 1px solid var(--border);
+    border-radius: 18px 18px 0 0;
+    background: #fff;
+    box-shadow: var(--shadow);
+    padding: 14px 16px;
+    margin: 0 auto;
+  }
+  .day-title { letter-spacing: .02em; }
+  .day-sub   { font-size: .92rem; color: var(--muted); }
+  .day-actions .chip,
+  .day-actions .navbtn { height: 38px; }
+  .day-actions .chip svg,
+  .day-actions .navbtn svg { width:16px; height:16px; }
+
+  /* Calendar shell card, directly attached to header card */
+  .card-wrap {
+    border: 1px solid var(--border);
+    border-top: none; /* merges with header card */
+    border-radius: 0 0 18px 18px;
+    background: #fff;
+    box-shadow: var(--shadow);
+    padding: 12px 14px 8px;
+    margin: 0 auto;
+  }
+
+  /* Legend */
+  .legend {
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding: 6px 6px 10px 6px; border-bottom:1px dashed var(--border);
+    margin: 0 0 10px 0;
+  }
+  .legend .i { display:flex; align-items:center; gap:8px; color:#475467; font-size:.9rem; }
+  .legend .dot {
+    width:12px; height:12px; border-radius:999px; display:inline-block; margin-right:8px;
+    border:1px solid var(--slot-dash);
+  }
+  .legend .free  .dot{ background:#fff; }
+  .legend .sel   .dot{ background:var(--slot-active); border-color:#d5d4ff; }
+  .legend .book  .dot{ background:var(--slot-book); border-color:#e1e4ea; }
+  .legend .hint { margin-left:auto; color:#667085; font-size:.88rem; }
+
+  /* Grid area – keep your existing layout but give it air horizontally */
+  .scroller { overflow-x: auto; }
+  .grid-wrap { min-width: 1200px; }
+
+  .hours   { margin-bottom: 10px; }
+  .hlabel  { font-size: .92rem; }
+
+  .rowline .courtname { font-size: .98rem; letter-spacing: .01em; }
+
+  /* Slightly tighter gaps to use space better */
+  .cells { gap: 6px; position: relative; }
+  .rowline { margin-bottom: calc(var(--slot-h) + 28px); }
+
+  /* Feedback message aligns with grid */
+  #feedback { margin-left: var(--label-col); }
+
+  /* Loading shimmer (optional nicety) */
+  .grid-wrap.loading .cells::before,
+  .grid-wrap.loading .hours::before {
+    content:"";
+    display:block;
+    height:8px;
+    border-radius:8px;
+    background: linear-gradient(90deg, #f3f4f6, #eef0f5, #f3f4f6);
+    background-size: 200% 100%;
+    animation: shimmer 1.1s infinite linear;
+    grid-column: 1 / -1;
+    margin: 8px 0;
+  }
+  @keyframes shimmer { 0%{background-position: 200% 0} 100%{background-position: -200% 0} }
+
+  /* Book bar inputs on mobile stretch nicely */
+  @media (max-width: 575.98px){
+    .day-actions { width:100%; justify-content: space-between; }
+    #bookbar .form-control { min-width: 0; width: 100%; }
+  }
+</style>
+
+<!-- ===== UNIFIED BOOKING SECTION (header + calendar together, wide) ===== -->
+<section class="booking" id="book">
+  <div class="container-wide">
+
+    <!-- Header with day & controls (NOT sticky) -->
+    <div class="daybox d-flex flex-column flex-lg-row justify-content-between align-items-center gap-3">
+      <div>
+        <div class="day-title h5 mb-1" id="dayName">—</div>
+        <div class="day-sub"><span id="dayDate">—</span> • Denný prehľad</div>
+      </div>
+      <div class="d-flex align-items-center gap-2 day-actions">
+        <button class="chip d-inline-flex align-items-center gap-1" id="todayBtn" title="Skok na dnešok">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" stroke="#c9ced7"/><path d="M8 3v4M16 3v4M3 9h18" stroke="#c9ced7"/></svg>
+          Dnes
+        </button>
+        <button class="navbtn" id="prevBtn" aria-label="Predchádzajúci deň" title="Predchádzajúci deň">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="navbtn" id="nextBtn" aria-label="Nasledujúci deň" title="Nasledujúci deň">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <input class="chip" type="date" id="datePick" aria-label="Vybrať dátum" />
+      </div>
+    </div>
+
+    <!-- Calendar card (attached to header card) -->
+    <div class="card-wrap">
+      <!-- Legend -->
+      <div class="legend">
+        <div class="i free"><span class="dot"></span>Voľné</div>
+        <div class="i sel"><span class="dot"></span>Vybrané</div>
+        <div class="i book"><span class="dot"></span>Obsadené</div>
+        <div class="hint d-none d-md-block">Tip: klikni na susedné sloty na rozšírenie alebo na okraj na zúženie.</div>
+      </div>
+
+      <!-- Timeline grid -->
+      <div class="scroller">
+        <div class="grid-wrap loading" id="gridWrap">
+          <div class="hours" id="hours" aria-hidden="true"></div>
+
+          <div class="rowline">
+            <div class="courtname">Kurt 1</div>
+            <div class="cells" id="cells1" data-court="1"></div>
+          </div>
+
+          <div class="rowline">
+            <div class="courtname">Kurt 2</div>
+            <div class="cells" id="cells2" data-court="2"></div>
+          </div>
+
+          <div id="feedback" class="mt-2" style="display:none" aria-live="polite"></div>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- ===== BOOKING (unchanged) ===== -->
-  <section class="timeline">
-    <div class="container scroller">
-      <div class="grid-wrap">
-        <div class="hours" id="hours"></div>
+  </div>
+</section>
 
-        <div class="rowline">
-          <div class="courtname">Kurt 1</div>
-          <div class="cells" id="cells1" data-court="1"></div>
-        </div>
-
-        <div class="rowline">
-          <div class="courtname">Kurt 2</div>
-          <div class="cells" id="cells2" data-court="2"></div>
-        </div>
-
-        <div id="feedback" class="mt-2" style="display:none"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- BOOK BAR -->
-  <div id="bookbar" class="bookbar" style="display:none;">
-    <div class="container d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2">
-      <div id="selSummary" class="me-auto"></div>
-      <input id="name" class="form-control" placeholder="Meno (voliteľné)" style="max-width:260px;">
-      <input id="email" class="form-control" type="email" placeholder="E-mail (voliteľné)" style="max-width:260px;">
-      <div class="d-flex gap-2">
-        <button id="clearSel" class="btn btn-light border">Vymazať</button>
-        <button id="confirmSel" class="btn btn-dark">Rezervovať</button>
-      </div>
+<!-- BOOK BAR (unchanged) -->
+<div id="bookbar" class="bookbar" style="display:none;">
+  <div class="container d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2">
+    <div id="selSummary" class="me-auto"></div>
+    <input id="name" class="form-control" placeholder="Meno (voliteľné)" style="max-width:260px;">
+    <input id="email" class="form-control" type="email" placeholder="E-mail (voliteľné)" style="max-width:260px;">
+    <div class="d-flex gap-2">
+      <button id="clearSel" class="btn btn-light border">Vymazať</button>
+      <button id="confirmSel" class="btn btn-dark">Rezervovať</button>
     </div>
   </div>
+</div>
 
-  <!-- CONTENT -->
-  <section id="membership" class="py-5">
-    <div class="container text-center">
-      <h3 class="mb-2">Členstvo</h3>
-      <p class="text-muted mb-3">Získaj výhody klubu – tréningy, komunitu aj turnaje.</p>
-      <a href="#contact" class="btn btn-dark">Stať sa členom</a>
-    </div>
-  </section>
+<!-- Other content (unchanged) -->
+<section id="membership" class="py-5">
+  <div class="container text-center">
+    <h3 class="mb-2">Členstvo</h3>
+    <p class="text-muted mb-3">Získaj výhody klubu – tréningy, komunitu aj turnaje.</p>
+    <a href="#contact" class="btn btn-dark">Stať sa členom</a>
+  </div>
+</section>
 
-  <section id="contact" class="pb-5">
-    <div class="container text-center">
-      <h3 class="mb-2">Kontakt</h3>
-      <a href="mailto:info@palmapickleball.sk" class="btn btn-dark">info@palmapickleball.sk</a>
-    </div>
-  </section>
+<section id="contact" class="pb-5">
+  <div class="container text-center">
+    <h3 class="mb-2">Kontakt</h3>
+    <a href="mailto:info@palmapickleball.sk" class="btn btn-dark">info@palmapickleball.sk</a>
+  </div>
+</section>
 
 {% endblock %}
 
 {% block scripts %}
 <script>
-  /* ==== booking JS stays the same as your current version ==== */
+  /* ==== booking JS (ids unchanged) ==== */
   const SLOTS=["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30"];
   const HOURS=["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
 
@@ -91,6 +215,7 @@
   const nextBtn=document.getElementById('nextBtn');
   const dayName=document.getElementById('dayName');
   const dayDate=document.getElementById('dayDate');
+  const gridWrap=document.getElementById('gridWrap');
   const skDays=["Nedeľa","Pondelok","Utorok","Streda","Štvrtok","Piatok","Sobota"];
 
   function fmt(d){return d.toISOString().slice(0,10);}
@@ -101,8 +226,16 @@
   function clearNote(){const fb=document.getElementById('feedback');fb.style.display='none';fb.className='';fb.innerHTML=''}
 
   function renderHours(){
-    hoursEl.innerHTML=''; const spacer=document.createElement('div');spacer.style.gridColumn='1 / span 1';hoursEl.appendChild(spacer);
-    HOURS.forEach((h,i)=>{const div=document.createElement('div');div.className='hlabel';div.style.gridColumn=`${2+i*2} / span 2`;div.textContent=h;hoursEl.appendChild(div);});
+    hoursEl.innerHTML='';
+    const spacer=document.createElement('div');
+    spacer.style.gridColumn='1 / span 1';hoursEl.appendChild(spacer);
+    HOURS.forEach((h,i)=>{
+      const div=document.createElement('div');
+      div.className='hlabel';
+      div.style.gridColumn=`${2+i*2} / span 2`;
+      div.textContent=h;
+      hoursEl.appendChild(div);
+    });
   }
 
   let activeCellsEl=null,startIdx=null,endIdx=null;
@@ -122,7 +255,14 @@
     let chip=cellsEl.querySelector('.timechip'); const label=`${SLOTS[s]} – ${nextTime(SLOTS[e])}`;
     if(!chip){chip=document.createElement('div');chip.className='timechip';cellsEl.appendChild(chip);}
     chip.textContent=label; chip.style.left=left+'px';
-    requestAnimationFrame(()=>{const bandW=(right-left), chipW=chip.offsetWidth;let chipLeft=left+(bandW-chipW)/2;const maxLeft=cellsEl.clientWidth-chipW;chipLeft=Math.max(0,Math.min(chipLeft,maxLeft));chip.classList.toggle('tight',chipW>bandW);chip.style.left=chipLeft+'px';});
+    requestAnimationFrame(()=>{
+      const bandW=(right-left), chipW=chip.offsetWidth;
+      let chipLeft=left+(bandW-chipW)/2;
+      const maxLeft=cellsEl.clientWidth-chipW;
+      chipLeft=Math.max(0,Math.min(chipLeft,maxLeft));
+      chip.classList.toggle('tight',chipW>bandW);
+      chip.style.left=chipLeft+'px';
+    });
     selSummary.innerHTML=`<strong>${cellsEl.dataset.court==='1'?'Kurt 1':'Kurt 2'}</strong> • ${label}`;
     bookbar.style.display='block';
   }
@@ -148,12 +288,21 @@
       cellsEl.appendChild(c);
     });
   }
+
   async function loadDay(){
-    clearNote(); clearVisual(activeCellsEl); activeCellsEl=null; startIdx=endIdx=null;
-    const res=await fetch(`/api/availability?date=${datePick.value}`); const data=await res.json();
-    const booked1=new Set(data.courts["1"]||[]), booked2=new Set(data.courts["2"]||[]);
-    buildCells(cells1,"1",booked1); buildCells(cells2,"2",booked2);
+    clearNote();
+    gridWrap.classList.add('loading');
+    clearVisual(activeCellsEl); activeCellsEl=null; startIdx=endIdx=null;
+    try{
+      const res=await fetch(`/api/availability?date=${datePick.value}`);
+      const data=await res.json();
+      const booked1=new Set(data.courts["1"]||[]), booked2=new Set(data.courts["2"]||[]);
+      buildCells(cells1,"1",booked1); buildCells(cells2,"2",booked2);
+    } finally {
+      setTimeout(()=>gridWrap.classList.remove('loading'), 150);
+    }
   }
+
   document.getElementById('confirmSel').onclick=async()=>{
     if(!activeCellsEl||startIdx===null||endIdx===null) return;
     const s=Math.min(startIdx,endIdx), e=Math.max(startIdx,endIdx);
@@ -162,21 +311,25 @@
       const res=await fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({date:datePick.value,court,slots,name:nameInput.value.trim(),email:emailInput.value.trim()})});
       const data=await res.json();
-      if(!data.ok){const conf=data.conflicts?` Konflikt: <b>${data.conflicts.join(', ')}</b>.`:''; showNote('err',(data.error||'Rezervácia zlyhala.')+conf); return;}
-      const label=`${slots[0]} – ${nextTime(slots.at(-1))}`; showNote('ok',`Rezervované: <b>${label}</b> (${court==='1'?'Kurt 1':'Kurt 2'}).`);
+      if(!data.ok){
+        const conf=data.conflicts?` Konflikt: <b>${data.conflicts.join(', ')}</b>.`:'';
+        showNote('err',(data.error||'Rezervácia zlyhala.')+conf); return;
+      }
+      const label=`${slots[0]} – ${nextTime(slots.at(-1))}`;
+      showNote('ok',`Rezervované: <b>${label}</b> (${court==='1'?'Kurt 1':'Kurt 2'}).`);
       await loadDay(); bookbar.style.display='none';
-    }catch{showNote('err','Chyba spojenia. Skúste znova.');}
+    }catch{
+      showNote('err','Chyba spojenia. Skúste znova.');
+    }
   };
   document.getElementById('clearSel').onclick=()=>{ clearVisual(activeCellsEl); activeCellsEl=null; startIdx=endIdx=null; };
 
   function setToday(){const t="{{ today }}"; datePick.value=t; setHeader(t);}
   function shift(n){const d=parse(datePick.value); d.setDate(d.getDate()+n); const v=fmt(d); datePick.value=v; setHeader(v);}
-  function setHeader(d){const dt=parse(d); dayName.textContent=["Nedeľa","Pondelok","Utorok","Streda","Štvrtok","Piatok","Sobota"][dt.getDay()].toUpperCase(); dayDate.textContent=dt.toLocaleDateString('sk-SK',{day:'2-digit',month:'2-digit',year:'numeric'});}
 
   document.getElementById('year').textContent=new Date().getFullYear();
   (function init(){
-    const spacer=document.createElement('div');spacer.style.gridColumn='1 / span 1';hoursEl.appendChild(spacer);
-    HOURS.forEach((h,i)=>{const div=document.createElement('div');div.className='hlabel';div.style.gridColumn=`${2+i*2} / span 2`;div.textContent=h;hoursEl.appendChild(div);});
+    renderHours();
     setToday(); loadDay();
     todayBtn.onclick=()=>{ setToday(); loadDay(); };
     prevBtn.onclick =()=>{ shift(-1); loadDay(); };
