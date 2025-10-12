@@ -36,11 +36,12 @@
 
   @media (max-width:575.98px){
     /* Title + actions stack and align to same left edge as “Dnes” */
-    .daybox{display:block;}
-    .day-actions{gap:8px; margin-top:8px;}
+    .daybox{display:block; padding-top:27px;} /* more space ABOVE title on mobile */
+    .day-title{margin-bottom:2px;}            /* less space BELOW title on mobile */
+    .day-actions{gap:8px; margin-top:4px;}    /* tighten gap below title */
     #datePick{width:130px;min-width:130px;}
-    .chip .cal-ico{display:none;}       /* hide „Dnes“ icon */
-    .day-sub{display:none;}             /* hide date + “Denný prehľad” on mobile */
+    .chip .cal-ico{display:none;}             /* hide „Dnes“ icon */
+    .day-sub{display:none;}                   /* hide date + “Denný prehľad” on mobile */
   }
 
   /* Calendar card */
@@ -75,7 +76,7 @@
     border-radius:999px;
     overflow:hidden;
     background:#fff;
-    box-shadow:none;             /* ✨ no blur on mobile as requested */
+    box-shadow:none;             /* no blur on mobile */
   }
   .nudge-btn{
     appearance:none; border:0; background:#fff;
@@ -283,9 +284,9 @@
     const isMobile=window.matchMedia("(max-width: 575.98px)").matches;
 
     if(isMobile){
-      /* Mobile: “Nedeľa – rezervácia kurtov” */
-      dayName.textContent = `${dayStr} – rezervácia kurtov`;
-      /* hide day-sub via CSS already */
+      /* Mobile: “NEDEĽA – rezervácia kurtov” and aligned with “Dnes” */
+      dayName.textContent = `${dayStr.toUpperCase()} – rezervácia kurtov`;
+      /* date/subtitle hidden via CSS */
     }else{
       dayName.textContent = dayStr.toUpperCase();
       dayDate.textContent = dt.toLocaleDateString('sk-SK',{day:'2-digit',month:'2-digit',year:'numeric'});
