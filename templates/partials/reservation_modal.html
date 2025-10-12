@@ -1,0 +1,45 @@
+{# templates/partials/reservation_modal.html #}
+<!-- ===== Rezervácia popup (partial) ===== -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Rezervácia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavrieť"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-4">
+          <!-- Summary -->
+          <div class="col-12 col-lg-6">
+            <ul class="resv-summary">
+              <li><div class="sum-label">Kurt</div><div class="sum-value" id="mCourt">—</div></li>
+              <li><div class="sum-label">Dátum</div><div class="sum-value" id="mDate">—</div></li>
+              <li><div class="sum-label">Čas</div><div class="sum-value" id="mTime">—</div></li>
+              <li><div class="sum-label">Miesto</div><div class="sum-value">Račianska 12 (Areál Palmy), 831 02 Bratislava</div></li>
+              <li>
+                <div class="sum-label">Suma rezervácie</div>
+                <div class="sum-value sum-money"><span class="amount" id="mTotal">—</span></div>
+              </li>
+            </ul>
+
+            <div class="mt-4">
+              <label for="mNote" class="form-label">Poznámka (voliteľné)</label>
+              <textarea id="mNote" class="form-control" rows="4" placeholder="Poznámka k rezervácii"></textarea>
+            </div>
+          </div>
+
+          <!-- Court visual -->
+          <div class="col-12 col-lg-6">
+            <img id="mImg" class="court-photo" src="{{ url_for('static', filename='images/us1.png') }}" alt="Kurt">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-light border" data-bs-dismiss="modal">Zrušiť</button>
+        <button id="modalConfirmBtn" class="btn btn-accent">Prejsť do pokladne</button>
+      </div>
+    </div>
+  </div>
+</div>
