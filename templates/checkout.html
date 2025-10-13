@@ -1,34 +1,310 @@
-<!doctype html>
-<html lang="sk">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pokladňa – Palma Pickleball</title>
-  <h2>Checkout</h2>
-  <p>Dátum: {{ date }}</p>
-  <p>Kurt: {{ court }}</p>
-  <p>Suma: {{ total }}</p>
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/modern-normalize/2.0.0/modern-normalize.min.css">
-  <style>
-    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans"; background:#f7f7fb; color:#0f172a; }
-    .wrap { max-width: 900px; margin: 40px auto; padding: 24px; background:#fff; border:1px solid #e9ecf3; border-radius:14px; }
-    h1 { margin:0 0 12px; font-size:1.5rem; }
-    .row { display:flex; gap:16px; margin:8px 0; }
-    .label { width:160px; color:#5b6472; }
-    .val { font-weight:600; }
-    .btn { display:inline-flex; align-items:center; gap:10px; padding:10px 16px; border-radius:10px; border:1px solid #3a38d6; background:#3a38d6; color:#fff; text-decoration:none; }
-    .btn:hover { background:#312fd1; border-color:#312fd1; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <h1>Pokladňa</h1>
-    <div class="row"><div class="label">Dátum</div><div class="val">{{ date }}</div></div>
-    <div class="row"><div class="label">Kurt</div><div class="val">{{ court }}</div></div>
-    <div class="row"><div class="label">Suma</div><div class="val">{{ total }}</div></div>
-    <p>Sem pôjde vaša platba / rekapitulácia…</p>
-    <a class="btn" href="{{ url_for('index') }}">Späť na výber</a>
+{% block content %}
+<section class="checkout container py-5">
+  <div class="row g-5">
+
+    <!-- LEFT COLUMN -->
+    <div class="col-lg-8">
+
+      <!-- CONTACT INFO -->
+      <div class="mb-4">
+        <h5 class="fw-semibold mb-3">Kontaktné údaje</h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Meno</label>
+            <input type="text" class="form-control" id="name" placeholder="Meno">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Priezvisko</label>
+            <input type="text" class="form-control" id="surname" placeholder="Priezvisko">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Tel. číslo <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="phone" placeholder="+421 9XX XXX XXX" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" id="email" placeholder="email@domena.sk" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADDITIONAL FIELDS -->
+      <div class="mb-4">
+        <h5 class="fw-semibold mb-3">Dodatočné polia</h5>
+        <div class="row g-3 align-items-end">
+          <div class="col-md-6">
+            <label class="form-label">Padel Level</label>
+            <input type="text" class="form-control" id="padelLevel" placeholder="Vyberte">
+          </div>
+        </div>
+      </div>
+
+      <!-- INVOICE DETAILS -->
+      <div class="mb-4">
+        <h5 class="fw-semibold mb-3">Fakturačné údaje</h5>
+
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="companyCheck">
+          <label class="form-check-label fw-medium" for="companyCheck">Fakturovať na firmu</label>
+        </div>
+
+        <div id="companyFields" class="row g-3 d-none">
+          <div class="col-md-12">
+            <label class="form-label">Názov firmy <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="companyName">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">IČO <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="ico">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">DIČ <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="dic">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">IČ DPH</label>
+            <input type="text" class="form-control" id="icdph">
+          </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <div class="col-md-6">
+            <label class="form-label">Adresa <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="address" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Mesto <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="city" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">PSČ <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="zip" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Krajina</label>
+            <select class="form-select" id="country">
+              <option selected>Vyberte krajinu</option>
+              <option>Slovensko</option>
+              <option>Česko</option>
+              <option>Poľsko</option>
+              <option>Maďarsko</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col-lg-4">
+      <div class="checkout-summary p-4 border rounded-3 bg-light-subtle">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-semibold mb-0">Nákupný košík</h5>
+          <span class="text-muted small">{{ now.strftime("%H:%M") if now else "" }}</span>
+        </div>
+
+        <div class="border-bottom pb-3 mb-3">
+          <p class="fw-semibold mb-1">Rezervácia kurtu</p>
+          <p class="small mb-1">
+            Palma Pickleball Bratislava (Kurt {{ court }})<br>
+            {{ date }} {{ time if time else "" }}
+          </p>
+          <div class="text-end fw-semibold">{{ total or "20,00 €" }}</div>
+        </div>
+
+        <div class="d-flex justify-content-between small mb-2">
+          <span>Spolu bez DPH</span><span>16,26 €</span>
+        </div>
+        <div class="d-flex justify-content-between small mb-2">
+          <span>DPH</span><span>3,74 €</span>
+        </div>
+        <div class="d-flex justify-content-between fw-semibold border-top pt-2 mb-4">
+          <span>Spolu</span>
+          <span id="summaryTotal">{{ total or "20,00 €" }}</span>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-medium">Zľavový kód</label>
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="Zľavový kód">
+            <button class="btn btn-outline-primary">Uplatniť</button>
+          </div>
+        </div>
+
+        <!-- ================= Stripe Elements Placeholder ================= -->
+        <!-- ⚠️ INSERT YOUR STRIPE PUBLISHABLE KEY BELOW IN THE JS SECTION -->
+        <div id="payment-section" class="border rounded-3 p-3 mb-4 bg-white">
+          <form id="payment-form">
+            <div id="payment-element"><!-- Stripe Elements will appear here --></div>
+            <button id="submit" class="btn btn-primary w-100 mt-3">Zaplatiť</button>
+            <div id="error-message" class="text-danger small mt-2"></div>
+          </form>
+        </div>
+
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" id="saveCard" checked>
+          <label class="form-check-label small" for="saveCard">
+            Zapamätať kartu<br>
+            <span class="text-muted small">Po zapamätaní karty budú členstvá predlžované automaticky. Automatické predĺženie môžete kedykoľvek zrušiť.</span>
+          </label>
+        </div>
+
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="termsCheck" required>
+          <label class="form-check-label small" for="termsCheck">
+            Súhlasím s <a href="#">obchodnými podmienkami</a> a <a href="#">ochranou osobných údajov</a> <span class="text-danger">*</span>
+          </label>
+        </div>
+
+        <button class="btn btn-outline-primary w-100 py-2">POKRAČOVAŤ V NÁKUPE</button>
+      </div>
+    </div>
   </div>
-</body>
-</html>
+</section>
+
+<!-- ================= JS ================= -->
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  // Toggle company fields
+  document.getElementById("companyCheck").addEventListener("change", function () {
+    const fields = document.getElementById("companyFields");
+    fields.classList.toggle("d-none", !this.checked);
+  });
+
+  // ================= STRIPE INTEGRATION (REPLACE THIS WHOLE BLOCK) =================
+  // Publishable key comes from Flask: app passes stripe_key to the template
+  const stripe = Stripe("{{ stripe_key }}");
+
+  // Helpers
+  function parseAmountToCents(text) {
+    if (!text) return 0;
+    let s = String(text).trim();
+    // keep digits, dot, comma, minus; drop currency and spaces
+    s = s.replace(/[^\d.,-]/g, "");
+    if (s.includes(",") && s.includes(".")) {
+      // assume comma is thousands separator
+      s = s.replace(/,/g, "");
+    } else {
+      // treat comma as decimal separator
+      s = s.replace(",", ".");
+    }
+    const eur = parseFloat(s);
+    if (isNaN(eur)) return 0;
+    return Math.round(eur * 100);
+  }
+
+  function getTotalText() {
+    const el = document.getElementById("summaryTotal");
+    if (el && el.textContent.trim()) return el.textContent.trim();
+    // server fallback if needed
+    return {{ (total or "20,00 €") | tojson }};
+  }
+
+  async function createPaymentIntent() {
+    const amountText = getTotalText();
+    const payload = {
+      amount: amountText,       // backend can parse "15,00 €" safely
+      currency: "eur",
+      date: {{ (date or "") | tojson }},
+      court: {{ (court or "") | tojson }},
+      note: ""                  // hook up to a textarea if you add one
+    };
+
+    const res = await fetch("/create-payment-intent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const { error } = await res.json().catch(() => ({ error: "Chyba spojenia." }));
+      throw new Error(error || "Chyba spojenia.");
+    }
+    const data = await res.json();
+    if (!data.clientSecret) throw new Error("Neplatná odpoveď z platby.");
+    return data.clientSecret;
+  }
+
+  // Build the payment UI
+  const form = document.getElementById("payment-form");
+  const payBtn = document.getElementById("submit");
+  const errBox = document.getElementById("error-message");
+
+  let elements;      // Stripe Elements instance
+  let clientSecret;  // PaymentIntent client secret
+
+  async function initStripe() {
+    try {
+      payBtn.disabled = true;
+      payBtn.textContent = "Pripravujem platbu…";
+
+      clientSecret = await createPaymentIntent();
+
+      // Create Elements bound to the PaymentIntent
+      elements = stripe.elements({
+        clientSecret,
+        appearance: { theme: "stripe" }
+      });
+
+      const paymentElement = elements.create("payment", { layout: "tabs" });
+      paymentElement.mount("#payment-element");
+
+      payBtn.disabled = false;
+      payBtn.textContent = "Zaplatiť";
+    } catch (e) {
+      errBox.textContent = e.message || "Nepodarilo sa inicializovať platbu.";
+      payBtn.disabled = true;
+    }
+  }
+
+  // Kick it off
+  initStripe();
+
+  // Submit handler
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errBox.textContent = "";
+
+    // Basic consent check
+    const agree = document.getElementById("termsCheck");
+    if (!agree.checked) {
+      errBox.textContent = "Musíte súhlasiť s podmienkami.";
+      return;
+    }
+
+    payBtn.disabled = true;
+    payBtn.textContent = "Spracúvam…";
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      clientSecret, // use the one we created on init
+      confirmParams: {
+        return_url: window.location.origin + "/payment-success",
+      }
+    });
+
+    if (error) {
+      errBox.textContent = error.message || "Platbu sa nepodarilo dokončiť.";
+      payBtn.disabled = false;
+      payBtn.textContent = "Zaplatiť";
+    }
+  });
+</script>
+
+<style>
+.checkout-summary {
+  background: #f8f9fc;
+  box-shadow: 0 2px 6px rgba(0,0,0,.04);
+}
+.form-label {
+  font-weight: 500;
+  color: #1f2937;
+}
+#payment-element {
+  padding-top: .5rem;
+}
+</style>
+
+{% endblock %}
