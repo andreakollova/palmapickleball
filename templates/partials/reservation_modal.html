@@ -43,19 +43,17 @@
                     <span class="rezv__placeName">Palma Pickleball</span>
                   </div>
 
-                  <!-- Address block: used on mobile (and also visible under desktop line) -->
+                  <!-- Address block (mobile-friendly) -->
                   <div class="rezv__addr">
-                    <!-- Mobile-only inline logo -->
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="" class="addr-logo" aria-hidden="true">
                     <span class="addr-name">Palma Pickleball</span><br>
-                    <span class="addr-street">Račianska 12</span><br>
-                    <span class="addr-area">(Areál Palmy)</span><br>
+                    <span class="addr-street">Račianska 12,</span>
                     <span class="addr-zip">831 02, Bratislava</span>
                   </div>
                 </div>
               </li>
 
-              <!-- HIGHLIGHTED total row (aligned to the same left edge) -->
+              <!-- Total row -->
               <li class="rezv__row rezv__row--total rezv__align-left">
                 <div class="rezv__label">Suma rezervácie</div>
                 <div class="rezv__val rezv__val--accent">
@@ -65,7 +63,7 @@
               </li>
             </ul>
 
-            <!-- Note block stretches to bottom -->
+            <!-- Note -->
             <div class="rezv__noteArea">
               <label for="mNote" class="rezv__noteLbl">Poznámka (voliteľné)</label>
               <textarea id="mNote" class="form-control rezv__note rezv__align-left" rows="1" placeholder="Poznámka k rezervácii..."></textarea>
@@ -120,24 +118,18 @@
 }
 
 /* Header */
-#confirmModal .rezv__hdr{
-  position:relative; padding:20px 22px; border-bottom:1px solid #eef1f6; text-align:center;
-}
-#confirmModal .rezv__title{
-  margin:0; font-size:1.08rem; font-weight:600; color:#0f172a; letter-spacing:0.01em;
-}
+#confirmModal .rezv__hdr{position:relative; padding:20px 22px; border-bottom:1px solid #eef1f6; text-align:center;}
+#confirmModal .rezv__title{margin:0; font-size:1.08rem; font-weight:600; color:#0f172a; letter-spacing:0.01em;}
 #confirmModal .rezv__close{position:absolute; right:16px; top:16px;}
 
 /* Body + grid */
 #confirmModal .rezv__body{padding:18px 20px; overflow:auto;}
-#confirmModal .rezv__grid{
-  display:grid; gap:20px; grid-template-columns: 1.05fr 1fr; align-items:stretch;
-}
+#confirmModal .rezv__grid{display:grid; gap:20px; grid-template-columns: 1.05fr 1fr; align-items:stretch;}
 @media (max-width: 991.98px){ #confirmModal .rezv__grid{grid-template-columns:1fr;} }
 
-/* Left column flex to allow note to stretch */
+/* Left column */
 #confirmModal .rezv__left{display:flex; flex-direction:column; min-height:100%;}
-#confirmModal .rezv__sec{margin:4px 0 10px; font-size:1.1rem; font-weight:650; color:#0f172a;}
+#confirmModal .rezv__sec{margin:0px 0 4px; font-size:1.1rem; font-weight:650; color:#0f172a;}
 
 /* Rows */
 #confirmModal .rezv__list{list-style:none; margin:0 0 12px; padding:0; flex:0 0 auto;}
@@ -155,8 +147,8 @@
   #confirmModal .rezv__placeName::after{ content:" Courts"; }
 }
 
-/* One variable to make left edges match perfectly */
-#confirmModal .rezv__left{ --align-nudge: 10px; }  /* tweak if needed */
+/* Alignment helper */
+#confirmModal .rezv__left{ --align-nudge: 10px; }
 
 /* Place block (desktop defaults) */
 #confirmModal .rezv__val--place{text-align:right;}
@@ -166,153 +158,92 @@
 #confirmModal .rezv__addr{margin-top:2px; font-size:.9rem; color:#6b7280; font-weight:400;}
 #confirmModal .addr-logo{display:none; height:14px; width:auto; margin-right:6px; vertical-align:baseline;}
 
-/* === Total row: perfect 4-side border and left-edge alignment === */
+/* Total row */
 #confirmModal .rezv__row--total{
-  position:relative;
-  padding:14px 12px;
-  margin-top:8px;
-  margin-bottom:12px;
+  position:relative; padding:14px 12px; margin-top:8px; margin-bottom:12px;
   background:linear-gradient(180deg,#f7f8ff,#f3f5ff);
-  border:0;
-  border-radius:10px;
-  isolation:isolate;
-  white-space:nowrap;            /* keep label on one line */
+  border:0; border-radius:10px; isolation:isolate; white-space:nowrap;
 }
-#confirmModal .rezv__row--total::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border:1px solid #dfe3ff;
-  border-radius:10px;
-  pointer-events:none;
-}
-#confirmModal .rezv__row--total.rezv__align-left{
-  margin-left:calc(-1 * var(--align-nudge));
-  width:calc(100% + var(--align-nudge));
-}
-#confirmModal .rezv__val--accent{
-  color:#3a38d6; font-weight:700;
-  display:inline-flex; align-items:center; justify-content:flex-end;
-}
+#confirmModal .rezv__row--total::after{content:""; position:absolute; inset:0; border:1px solid #dfe3ff; border-radius:10px; pointer-events:none;}
+#confirmModal .rezv__row--total.rezv__align-left{margin-left:calc(-1 * var(--align-nudge)); width:calc(100% + var(--align-nudge));}
+#confirmModal .rezv__val--accent{color:#3a38d6; font-weight:700; display:inline-flex; align-items:center; justify-content:flex-end;}
 
-/* Note area */
-#confirmModal .rezv__noteArea{
-  margin-top:auto; display:flex; flex-direction:column; gap:6px; min-height:140px;
-}
+/* Note */
+#confirmModal .rezv__noteArea{margin-top:auto; display:flex; flex-direction:column; gap:6px; min-height:140px;}
 #confirmModal .rezv__noteLbl{display:block; color:#475467; font-weight:520; font-size:.9rem;}
-#confirmModal .rezv__note{
-  border:1px solid #e7e9f1; border-radius:12px; font-size:.94rem;
-  min-height:44px; height:100%; resize:none;
-}
-#confirmModal .rezv__note::placeholder{
-  color:#98a2b3;
-  font-size:0.82rem;
-  opacity:0.9;
-}
-#confirmModal .rezv__note.rezv__align-left{
-  margin-left:calc(-1 * var(--align-nudge));
-  width:calc(100% + var(--align-nudge));
-}
+#confirmModal .rezv__note{border:1px solid #e7e9f1; border-radius:12px; font-size:.94rem; min-height:44px; height:100%; resize:none;}
+#confirmModal .rezv__note::placeholder{color:#98a2b3; font-size:0.82rem; opacity:0.9;}
+#confirmModal .rezv__note.rezv__align-left{margin-left:calc(-1 * var(--align-nudge)); width:calc(100% + var(--align-nudge));}
 
-/* Right side image fills remaining height */
+/* Right side image */
 #confirmModal .rezv__right{display:flex; min-height:100%;}
-/* Lock a fixed desktop height so both courts align exactly */
 #confirmModal .rezv__grid{ --media-h: 520px; }
-
-#confirmModal .rezv__media{
-  position:relative; border:1px solid #eef1f6; border-radius:12px;
-  overflow:hidden; background:#fafbff; flex:1 1 auto;
-  height: var(--media-h);
-}
+#confirmModal .rezv__media{position:relative; border:1px solid #eef1f6; border-radius:12px; overflow:hidden; background:#fafbff; flex:1 1 auto; height: var(--media-h);}
 #confirmModal .rezv__photo{ width:100%; height:100%; object-fit:cover; }
+@media (max-width: 991.98px){ #confirmModal .rezv__media{ height:auto; } #confirmModal .rezv__photo{ height:auto; aspect-ratio: 3 / 2; } }
 
-@media (max-width: 991.98px){
-  #confirmModal .rezv__media{ height: auto; }
-  #confirmModal .rezv__photo{ height:auto; aspect-ratio: 3 / 2; }
-}
-
-#confirmModal .rezv__badge{
-  position:absolute; right:12px; top:12px; padding:.28rem .6rem;
-  border-radius:999px; background:#111827; color:#fff;
-  font-size:.82rem; font-weight:600; opacity:.95;
-}
+#confirmModal .rezv__badge{position:absolute; right:12px; top:12px; padding:.28rem .6rem; border-radius:999px; background:#111827; color:#fff; font-size:.82rem; font-weight:600; opacity:.95;}
 
 /* Footer */
-#confirmModal .rezv__ftr{
-  position:sticky; bottom:0; z-index:2;
-  display:flex; align-items:center; justify-content:space-between; gap:10px;
-  padding:14px 20px; border-top:1px solid #eef1f6;
-  background:linear-gradient(180deg, rgba(255,255,255,.94), #fff);
-}
-#confirmModal .rezv__ftr .btn-light { margin-left:-9px; }
+#confirmModal .rezv__ftr{position:sticky; bottom:0; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 20px; border-top:1px solid #eef1f6; background:linear-gradient(180deg, rgba(255,255,255,.94), #fff);}
+#confirmModal .rezv__ftr .btn-light{ margin-left:-9px; }
 #confirmModal .rezv__ftr .btn-accent i.fa-cart-shopping{ font-size:.8rem; margin-top:1px; }
 
-/* ====== MOBILE-ONLY LAYOUT TWEAKS ====== */
+/* ========= MOBILE-ONLY TWEAKS ========= */
 @media (max-width: 575.98px){
 
-  /* Less padding above/below “Sumár” */
+  /* tighter “Sumár” */
   #confirmModal .rezv__sec{ margin:2px 0 6px; }
 
-  /* More room for labels/values */
-  #confirmModal .rezv__row{ --label-w: 120px; gap:8px; }
+  /* more room for values */
+  #confirmModal .rezv__row{ --label-w:120px; gap:8px; }
 
-  /* MOBILE place block: right-aligned, bold name, smaller rest, show small logo */
-  #confirmModal .rezv__placeLine{ display:none; }      /* hide desktop header line */
+  /* make the address block smaller on mobile */
+  #confirmModal .rezv__placeLine{ display:none; }  /* hide desktop header line */
   #confirmModal .rezv__val--place{ text-align:right; }
-  #confirmModal .rezv__addr{
-    margin-top:0;
-    font-size:.88rem;
-    line-height:1.28;
-    color:#4b5563;
-  }
   #confirmModal .addr-logo{ display:inline-block; height:14px; margin-right:6px; opacity:.95; position:relative; top:1px; }
-  #confirmModal .addr-name{ font-weight:700; color:#111827; font-size:.95rem; }
+  #confirmModal .addr-name{ font-weight:700; color:#111827; font-size:.9rem; }
   #confirmModal .addr-street,
   #confirmModal .addr-area,
-  #confirmModal .addr-zip{ font-weight:400; color:#6b7280; }
+  #confirmModal .addr-zip {
+    font-weight:400;
+    color:#6b7280;
+    font-size:.72rem;
+    line-height:0.35; /* reduced line spacing */
+  }
 
-  /* SWAP order: image ABOVE note */
+  /* order: sec -> list (with price) -> NOTE -> IMAGE */
   #confirmModal .rezv__grid{
     display:grid;
     grid-template-columns:1fr;
     grid-template-areas:
       "sec"
       "list"
-      "media"
-      "note";
+      "note"
+      "media";
     row-gap:14px;
   }
   #confirmModal .rezv__left{ display:contents; }
   #confirmModal .rezv__sec{ grid-area:sec; }
   #confirmModal .rezv__list{ grid-area:list; }
-  #confirmModal .rezv__right{ grid-area:media; }
   #confirmModal .rezv__noteArea{ grid-area:note; min-height:110px; }
+  #confirmModal .rezv__right{ grid-area:media; }
 
-  /* Align left edges for total & textarea; keep total on one line and push amount farther right */
-  #confirmModal .rezv__left{ --align-nudge: 10px; }
-  #confirmModal .rezv__row--total{ white-space:nowrap; padding-right:4px; } /* smaller right padding -> amount sits further right */
-  #confirmModal .rezv__row--total.rezv__align-left{
-    margin-left:calc(-1 * var(--align-nudge));
-    width:calc(100% + var(--align-nudge));
-  }
-  #confirmModal .rezv__note.rezv__align-left{
-    margin-left:calc(-1 * var(--align-nudge));
-    width:calc(100% + var(--align-nudge));
-  }
+  /* keep total on one line; align edges */
+  #confirmModal .rezv__left{ --align-nudge:10px; }
+  #confirmModal .rezv__row--total{ white-space:nowrap; padding-right:4px; }
+  #confirmModal .rezv__row--total.rezv__align-left{ margin-left:calc(-1 * var(--align-nudge)); width:calc(100% + var(--align-nudge)); }
+  #confirmModal .rezv__note.rezv__align-left{ margin-left:calc(-1 * var(--align-nudge)); width:calc(100% + var(--align-nudge)); }
 
-  /* IMAGE: shift left & up a bit; align with footer buttons on the left */
-  #confirmModal .rezv__media{
-    margin-left:-10px;
-    width:calc(100% + 10px);
-    margin-top:-8px;
-  }
+  /* image alignment */
+  #confirmModal .rezv__media{ margin-left:-10px; width:calc(100% + 10px); margin-top:-8px; }
 
-  /* Mobile button labels (short) */
+  /* short button labels */
   #confirmModal .lbl-dt{ display:none; }
   #confirmModal .lbl-mob{ display:inline; }
 }
 
-/* Desktop labels (default) */
+/* desktop labels default */
 @media (min-width: 576px){
   #confirmModal .lbl-dt{ display:inline; }
   #confirmModal .lbl-mob{ display:none; }
