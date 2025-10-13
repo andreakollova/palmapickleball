@@ -10,19 +10,27 @@
       <div class="card card-plain mb-4">
         <div class="card-body p-4">
           <h5 class="fw-semibold mb-3">Kontaktné údaje</h5>
+
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label">Meno</label>
-              <input type="text" class="form-control" id="c_first">
+              <label class="form-label">
+                Meno <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="c_first" placeholder="Meno" required>
             </div>
+
             <div class="col-md-6">
-              <label class="form-label">Priezvisko</label>
-              <input type="text" class="form-control" id="c_last">
+              <label class="form-label">
+                Priezvisko <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="c_last" placeholder="Priezvisko" required>
             </div>
+
             <div class="col-md-6">
               <label class="form-label">Tel. číslo <span class="text-danger">*</span></label>
               <input type="text" class="form-control" id="c_phone" placeholder="+421 9XX XXX XXX" required>
             </div>
+
             <div class="col-md-6">
               <label class="form-label">Email <span class="text-danger">*</span></label>
               <input type="email" class="form-control" id="c_email" placeholder="email@domena.sk" required>
@@ -34,41 +42,43 @@
       <div class="card card-plain mb-4">
         <div class="card-body p-4">
           <h5 class="fw-semibold mb-3">Fakturačné údaje</h5>
+
           <div class="form-check mb-3">
             <input class="form-check-input" type="checkbox" id="companyCheck">
             <label class="form-check-label fw-medium" for="companyCheck">Fakturovať na firmu</label>
           </div>
+
           <div id="companyFields" class="row g-3 d-none">
             <div class="col-md-12">
               <label class="form-label">Názov firmy <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="b_company">
+              <input type="text" class="form-control" id="b_company" placeholder="Názov firmy">
             </div>
             <div class="col-md-4">
               <label class="form-label">IČO <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="b_ico">
+              <input type="text" class="form-control" id="b_ico" placeholder="IČO">
             </div>
             <div class="col-md-4">
               <label class="form-label">DIČ <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="b_dic">
+              <input type="text" class="form-control" id="b_dic" placeholder="DIČ">
             </div>
             <div class="col-md-4">
               <label class="form-label">IČ DPH</label>
-              <input type="text" class="form-control" id="b_icdph">
+              <input type="text" class="form-control" id="b_icdph" placeholder="IČ DPH">
             </div>
           </div>
 
           <div class="row g-3 mt-1">
             <div class="col-md-6">
               <label class="form-label">Adresa <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="b_address" required>
+              <input type="text" class="form-control" id="b_address" placeholder="Adresa" required>
             </div>
             <div class="col-md-6">
               <label class="form-label">Mesto <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="b_city" required>
+              <input type="text" class="form-control" id="b_city" placeholder="Mesto" required>
             </div>
             <div class="col-md-6">
               <label class="form-label">PSČ <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="b_zip" required>
+              <input type="text" class="form-control" id="b_zip" placeholder="PSČ" required>
             </div>
             <div class="col-md-6">
               <label class="form-label">Krajina</label>
@@ -89,10 +99,13 @@
           <h5 class="fw-semibold mb-3">Platba kartou</h5>
           <form id="payment-form">
             <div id="payment-element" class="mb-2"></div>
+
             <div class="form-check mt-2">
               <input class="form-check-input" type="checkbox" id="termsCheck" required>
               <label class="form-check-label small" for="termsCheck">
-                Súhlasím s <a href="#" class="link-accent">obchodnými podmienkami</a> a <a href="#" class="link-accent">ochranou osobných údajov</a> <span class="text-danger">*</span>
+                Súhlasím s <a href="#" class="link-accent">obchodnými podmienkami</a> a
+                <a href="#" class="link-accent">ochranou osobných údajov</a>
+                <span class="text-danger">*</span>
               </label>
             </div>
           </form>
@@ -195,7 +208,10 @@
   refreshVat();
 
   // Coupon logic
-  const COUPONS={"PALMA10":{type:"percent",value:10},"PALMA5":{type:"amount",value:5}};
+  const COUPONS={
+    "PALMA10":{type:"percent",value:10},
+    "PALMA5":{type:"amount",value:5}
+  };
   const couponMsg=document.getElementById("couponMsg");
   document.getElementById("applyCoupon").addEventListener("click",async()=>{
     const code=document.getElementById("coupon").value.trim().toUpperCase();
@@ -219,12 +235,19 @@
   let elements,clientSecret,mountedEl;
 
   function totalText(){return(document.getElementById("sum_gross").textContent||"20,00 €").trim();}
-  function bodyForIntent(){return{amount:totalText(),currency:"eur",date:{{(date or "")|tojson}},court:{{(court or "")|tojson}},time:{{(time or request.args.get('time') or "")|tojson}}};}
+  function bodyForIntent(){return{
+    amount:totalText(),
+    currency:"eur",
+    date:{{(date or "")|tojson}},
+    court:{{(court or "")|tojson}},
+    time:{{(time or request.args.get('time') or "")|tojson}}
+  };}
 
   async function createIntent(){
     const r=await fetch("/create-payment-intent",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(bodyForIntent())});
     const d=await r.json();if(!r.ok||!d.clientSecret)throw new Error("Nepodarilo sa pripraviť platbu.");return d.clientSecret;
   }
+
   async function initElements(){
     try{
       payBtn.disabled=true;payBtn.textContent="Pripravujem…";
@@ -235,6 +258,7 @@
       payBtn.disabled=false;payBtn.textContent="Zaplatiť";
     }catch(e){errRight.textContent=e.message;}
   }
+
   async function reinitElements(){
     try{
       payBtn.disabled=true;
@@ -254,21 +278,44 @@
 </script>
 
 <style>
-:root{
-  --accent:#3a38d6;
-  --border-soft:#e6e9ef;
-}
-.btn-primary{background:var(--accent);border-color:var(--accent);}
-.btn-primary:hover{background:var(--accent);filter:brightness(.95);}
-.btn-outline-primary{color:var(--accent);border-color:var(--accent);}
-.btn-outline-primary:hover{background:var(--accent);border-color:var(--accent);}
-.form-check-input:checked{background-color:var(--accent);border-color:var(--accent);}
-.link-accent{color:var(--accent);}
-.card-plain{border:1px solid var(--border-soft)!important;border-radius:12px;box-shadow:none!important;}
-.order .card-body{background:#fafbfd;}
-.form-label{font-weight:500;color:#1f2937;}
-#payment-element{padding-top:.25rem;}
-#couponMsg{min-height:1.25rem;}
-@media(max-width:991.98px){.order{position:static!important;top:auto!important;}}
+  :root{
+    --accent:#3a38d6;
+    --border-soft:#e6e9ef;
+  }
+
+  .btn-primary{background:var(--accent);border-color:var(--accent);}
+  .btn-primary:hover{background:var(--accent);filter:brightness(.95);}
+  .btn-outline-primary{color:var(--accent);border-color:var(--accent);}
+  .btn-outline-primary:hover{background:var(--accent);border-color:var(--accent);}
+  .form-check-input:checked{background-color:var(--accent);border-color:var(--accent);}
+  .link-accent{color:var(--accent);}
+  .card-plain{border:1px solid var(--border-soft)!important;border-radius:12px;box-shadow:none!important;}
+  .order .card-body{background:#fafbfd;}
+
+  /* ==== Stripe-like label & placeholder tweaks (only this changed) ==== */
+  .form-label{
+    font-size: .95rem;       /* a bit smaller, like Stripe */
+    font-weight: 500;        /* medium, slightly lighter feel */
+    color: #111827;
+    margin-bottom: .35rem;   /* tighter spacing like Stripe */
+  }
+  .form-control::placeholder,
+  .form-select::placeholder{
+    color:#9aa3af;           /* lighter placeholder */
+    opacity:1;
+    font-size:.95rem;        /* slightly smaller placeholder text */
+  }
+  /* Inputs look closer to Stripe when padding is comfy and border subtle */
+  .form-control, .form-select{
+    padding:.56rem .75rem;
+    border-color:#e5e7eb;
+  }
+
+  #payment-element{padding-top:.25rem;}
+  #couponMsg{min-height:1.25rem;}
+
+  @media(max-width:991.98px){
+    .order{position:static!important;top:auto!important;}
+  }
 </style>
 {% endblock %}
