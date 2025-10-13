@@ -383,7 +383,8 @@ async function confirmBooking() {
     const q = new URLSearchParams({
       date: data.date,
       court: data.court,
-      total: (document.getElementById("mTotal")?.textContent || "15,00 €").trim()
+      total: (document.getElementById("mTotal")?.textContent || "15,00 €").trim(),
+      time:  (document.getElementById("mTime")?.textContent || "").trim()   // <— add this
     });
     window.location.href = `/checkout?${q.toString()}`;
 

@@ -129,7 +129,7 @@
                 <div class="fw-semibold">Rezervácia kurtu</div>
                 <div class="small text-muted">
                   Palma Pickleball Bratislava (Kurt {{ court }})<br>
-                  {{ date }}{% if time or request.args.get('time') %} • {{ time if time else request.args.get('time') }}{% endif %}
+                  {{ date }}{% if time_str %} • {{ time_str }}{% endif %}
                 </div>
               </div>
               <div class="fw-semibold ms-3" id="summaryTotal">{{ total or "20,00 €" }}</div>
@@ -240,7 +240,7 @@
     currency:"eur",
     date:{{(date or "")|tojson}},
     court:{{(court or "")|tojson}},
-    time:{{(time or request.args.get('time') or "")|tojson}}
+    time: {{ (time_str or "") | tojson }}
   };}
 
   async function createIntent(){

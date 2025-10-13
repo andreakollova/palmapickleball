@@ -147,13 +147,10 @@ def api_book():
 # =========================
 @app.route("/checkout")
 def checkout():
-    """
-    Renders your checkout page (checkout.html).
-    Expects query params: date, court, total (e.g., '15,00 €').
-    """
     date = request.args.get("date")
     court = request.args.get("court")
-    total = request.args.get("total")  # e.g., "15,00 €"
+    total = request.args.get("total")
+    time_str = request.args.get("time", "")        # <— read
     now = datetime.now()
 
     return render_template(
@@ -161,8 +158,9 @@ def checkout():
         date=date,
         court=court,
         total=total,
+        time_str=time_str,                          # <— pass
         now=now,
-        stripe_key=STRIPE_PUBLISHABLE_KEY,  # shown on the frontend
+        stripe_key=STRIPE_PUBLISHABLE_KEY,
     )
 
 
@@ -199,6 +197,7 @@ def create_payment_intent():
                 "date": str(data.get("date") or ""),
                 "court": str(data.get("court") or ""),
                 "note": str(data.get("note") or ""),
+                "time": str(data.get("time") or ""),  # <— add this
             },
         )
         return jsonify({"clientSecret": intent.client_secret})
