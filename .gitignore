@@ -5,3 +5,4 @@
 .venv/
 __pycache__/
 *.pyc.env
+OK: no sk_* in historyecho stripe-redact.txt
