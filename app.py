@@ -13,13 +13,14 @@ app = Flask(__name__)
 STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY")
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 
-if not STRIPE_PUBLISHABLE_KEY or not STRIPE_SECRET_KEY:
-    raise RuntimeError(
-        "Stripe keys are not set. Export STRIPE_PUBLISHABLE_KEY and STRIPE_SECRET_KEY."
-    )
+if not STRIPE_PUBLISHABLE_KEY:
+    STRIPE_PUBLISHABLE_KEY = "pk__REDACTED"
 
+if not STRIPE_SECRET_KEY:
+    STRIPE_SECRET_KEY = "sk__REDACTED"
+
+# Now set Stripe’s internal API key
 stripe.api_key = STRIPE_SECRET_KEY
-
 
 # =========================
 # Booking logic (unchanged)
