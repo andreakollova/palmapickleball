@@ -4,6 +4,10 @@ from datetime import datetime
 import os
 import re
 import stripe
+from dotenv import load_dotenv  # <-- add this at the top, with your other imports
+
+load_dotenv()  # loads variables from a .env file into os.environ
+
 
 app = Flask(__name__)
 
@@ -12,6 +16,12 @@ app = Flask(__name__)
 # =========================
 STRIPE_PUBLISHABLE_KEY = os.environ["STRIPE_PUBLISHABLE_KEY"]
 STRIPE_SECRET_KEY     = os.environ["STRIPE_SECRET_KEY"]
+
+if not STRIPE_PUBLISHABLE_KEY or not STRIPE_SECRET_KEY:
+    raise RuntimeError(
+        "Missing Stripe keys. Set STRIPE_PUBLISHABLE_KEY and STRIPE_SECRET_KEY in your environment (or .env)."
+    )
+
 stripe.api_key = STRIPE_SECRET_KEY
 
 # =========================
