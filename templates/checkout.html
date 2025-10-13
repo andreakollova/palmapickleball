@@ -123,6 +123,7 @@
             <span class="text-muted small">{{ now.strftime("%H:%M") if now else "" }}</span>
           </div>
 
+          <!-- Court + date/time -->
           <div class="p-3 rounded-3 border bg-light mb-3">
             <div class="d-flex justify-content-between">
               <div>
@@ -134,6 +135,9 @@
               </div>
               <div class="fw-semibold ms-3" id="summaryTotal">{{ total or "20,00 €" }}</div>
             </div>
+
+            <!-- Add-ons block (filled by JS) -->
+            <div id="addonsBlock" class="mt-3"></div>
           </div>
 
           <div class="d-flex justify-content-between small mb-2">
@@ -205,9 +209,113 @@
     document.getElementById("sum_vat").textContent=formatCents(vat);
     document.getElementById("sum_gross").textContent=formatCents(gross);
   }
-  refreshVat();
 
-  // Coupon logic
+  // ===================== ADD-ONS =====================
+  // prices in cents
+  const ADDON_PRICES = { racket: 300, camera: 1000 }; // 3€ / 10€
+  const IMG_RACKET = "{{ url_for('static', filename='images/shop/rakety.png') }}";
+  const IMG_CAMERA = "{{ url_for('static', filename='images/shop/kamera.png') }}";
+
+  // capture the base price at page load (court only)
+  const BASE_GROSS_CENTS = parseToCents(document.getElementById("sum_gross").textContent || document.getElementById("summaryTotal").textContent);
+
+  // simple state
+  let qtyRackets = 0;
+  let qtyCamera  = 0;
+
+  // keep track if a coupon was applied so we can re-apply after qty changes
+  let couponCodeApplied = null;
+
+  function euros(c){ return (c/100).toLocaleString('sk-SK', { style:'currency', currency:'EUR' }); }
+
+  function addonCents(){
+    return qtyRackets * ADDON_PRICES.racket + qtyCamera * ADDON_PRICES.camera;
+  }
+
+  function reapplyCouponIfAny(grossCents){
+    if(!couponCodeApplied) return grossCents;
+    const c = COUPONS[couponCodeApplied];
+    if(!c) return grossCents;
+    if(c.type === "percent") return Math.max(0, Math.round(grossCents * (1 - c.value/100)));
+    return Math.max(0, grossCents - Math.round(c.value*100));
+  }
+
+  function recalcTotals(){
+    // base + add-ons
+    let gross = BASE_GROSS_CENTS + addonCents();
+    // re-apply coupon if user has one active
+    gross = reapplyCouponIfAny(gross);
+
+    // write back to UI
+    document.getElementById("summaryTotal").textContent = euros(gross);
+    document.getElementById("sum_gross").textContent   = euros(gross);
+    refreshVat();
+
+    // re-create Stripe intent for new amount
+    reinitElements();
+    // also refresh add-ons summary list
+    renderAddonsSummary();
+  }
+
+  function renderAddonsUI(){
+    const wrap = document.getElementById('addonsBlock');
+    if(!wrap) return;
+    wrap.innerHTML = `
+      <div class="border-top pt-3">
+        <div class="fw-semibold mb-2">Doplnkové služby</div>
+
+        <!-- Rackets -->
+        <div class="d-flex align-items-center justify-content-between py-2">
+          <div class="d-flex align-items-center gap-2">
+            <img src="${IMG_RACKET}" alt="Rakety" style="width:34px;height:34px;object-fit:contain">
+            <div>
+              <div>Požičanie rakety</div>
+              <div class="small text-muted">3,00&nbsp;€ / ks</div>
+            </div>
+          </div>
+
+          <div class="d-inline-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="decR">−</button>
+            <span id="qtyR" class="minw-2 text-center" style="display:inline-block;width:24px">${qtyRackets}</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="incR">+</button>
+          </div>
+        </div>
+
+        <!-- Camera -->
+        <div class="d-flex align-items-center justify-content-between py-2 border-top">
+          <div class="d-flex align-items-center gap-2">
+            <img src="${IMG_CAMERA}" alt="Kamera POV Pro" style="width:34px;height:34px;object-fit:contain">
+            <div>
+              <div>Kamera POV Pro</div>
+              <div class="small text-muted">10,00&nbsp;€ / ks</div>
+            </div>
+          </div>
+
+          <div class="d-inline-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="decC">−</button>
+            <span id="qtyC" class="minw-2 text-center" style="display:inline-block;width:24px">${qtyCamera}</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="incC">+</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // wire up buttons
+    const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+    document.getElementById('incR').onclick = ()=>{ qtyRackets = clamp(qtyRackets+1,0,20); document.getElementById('qtyR').textContent = qtyRackets; recalcTotals(); };
+    document.getElementById('decR').onclick = ()=>{ qtyRackets = clamp(qtyRackets-1,0,20); document.getElementById('qtyR').textContent = qtyRackets; recalcTotals(); };
+    document.getElementById('incC').onclick = ()=>{ qtyCamera  = clamp(qtyCamera +1,0,20); document.getElementById('qtyC').textContent = qtyCamera;  recalcTotals(); };
+    document.getElementById('decC').onclick = ()=>{ qtyCamera  = clamp(qtyCamera -1,0,20); document.getElementById('qtyC').textContent = qtyCamera;  recalcTotals(); };
+  }
+
+  // small summary (lines) under court block
+  function renderAddonsSummary(){
+    // (re)build little list of chosen add-ons below totals if you want
+    // In this version the selection is visible in the controls themselves,
+    // so nothing else is needed here. Function kept for clarity/extension.
+  }
+
+  // ===================== COUPON LOGIC (unchanged, with memory) =====================
   const COUPONS={
     "PALMA10":{type:"percent",value:10},
     "PALMA5":{type:"amount",value:5}
@@ -215,19 +323,17 @@
   const couponMsg=document.getElementById("couponMsg");
   document.getElementById("applyCoupon").addEventListener("click",async()=>{
     const code=document.getElementById("coupon").value.trim().toUpperCase();
-    const gross=parseToCents(document.getElementById("summaryTotal").textContent);
     const c=COUPONS[code];
-    if(!c){couponMsg.textContent="Zľavový kód nie je uplatnený.";couponMsg.className="small text-danger";return;}
-    let newC=gross;
-    if(c.type==="percent")newC=Math.max(0,Math.round(gross*(1-c.value/100)));
-    else newC=Math.max(0,gross-Math.round(c.value*100));
-    document.getElementById("summaryTotal").textContent=formatCents(newC);
-    refreshVat();
+    if(!c){couponMsg.textContent="Zľavový kód nie je uplatnený.";couponMsg.className="small text-danger";couponCodeApplied=null;return;}
+    couponCodeApplied = code; // remember active coupon
+
+    // re-run our total calculation which will apply coupon to (base + addons)
+    recalcTotals();
+
     couponMsg.textContent="Zľava uplatnená.";couponMsg.className="small text-success";
-    await reinitElements();
   });
 
-  // Stripe
+  // ===================== STRIPE =====================
   const stripe=Stripe("{{ stripe_key }}");
   const payBtn=document.getElementById("payBtn");
   const errRight=document.getElementById("summaryError");
@@ -235,12 +341,15 @@
   let elements,clientSecret,mountedEl;
 
   function totalText(){return(document.getElementById("sum_gross").textContent||"20,00 €").trim();}
+  function getQty(id){ const el=document.getElementById(id); return el?parseInt(el.textContent||"0",10):0; }
   function bodyForIntent(){return{
     amount:totalText(),
     currency:"eur",
     date:{{(date or "")|tojson}},
     court:{{(court or "")|tojson}},
-    time: {{ (time_str or "") | tojson }}
+    time: {{ (time_str or "") | tojson }},
+    rackets: getQty("qtyR"),            // send counts (metadata if backend uses it)
+    cameras: getQty("qtyC")
   };}
 
   async function createIntent(){
@@ -266,8 +375,13 @@
       await initElements();
     }finally{payBtn.disabled=false;}
   }
+
+  // init page
+  renderAddonsUI();
+  refreshVat();
   initElements();
 
+  // Pay
   payBtn.addEventListener("click",async()=>{
     errRight.textContent="";errLeft.textContent="";
     if(!document.getElementById("termsCheck").checked){errRight.textContent="Musíte súhlasiť s podmienkami.";return;}
@@ -292,24 +406,9 @@
   .card-plain{border:1px solid var(--border-soft)!important;border-radius:12px;box-shadow:none!important;}
   .order .card-body{background:#fafbfd;}
 
-  /* ==== Stripe-like label & placeholder tweaks (only this changed) ==== */
-  .form-label{
-    font-size: .95rem;       /* a bit smaller, like Stripe */
-    font-weight: 500;        /* medium, slightly lighter feel */
-    color: #111827;
-    margin-bottom: .35rem;   /* tighter spacing like Stripe */
-  }
-  .form-control::placeholder,
-  .form-select::placeholder{
-    color:#9aa3af;           /* lighter placeholder */
-    opacity:1;
-    font-size:.95rem;        /* slightly smaller placeholder text */
-  }
-  /* Inputs look closer to Stripe when padding is comfy and border subtle */
-  .form-control, .form-select{
-    padding:.56rem .75rem;
-    border-color:#e5e7eb;
-  }
+  .form-label{font-size:.95rem;font-weight:500;color:#111827;margin-bottom:.35rem;}
+  .form-control::placeholder,.form-select::placeholder{color:#9aa3af;opacity:1;font-size:.95rem;}
+  .form-control,.form-select{padding:.56rem .75rem;border-color:#e5e7eb;}
 
   #payment-element{padding-top:.25rem;}
   #couponMsg{min-height:1.25rem;}
