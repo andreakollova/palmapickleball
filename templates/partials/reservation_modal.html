@@ -86,7 +86,7 @@
           <span class="lbl-dt">Zrušiť rezerváciu</span>
           <span class="lbl-mob">Zrušiť</span>
         </button>
-        <button id="modalConfirmBtn" class="btn btn-accent d-inline-flex align-items-center gap-2">
+        <button id="modalConfirmBtn" type="button" class="btn btn-accent d-inline-flex align-items-center gap-2">
           <i class="fa-solid fa-cart-shopping"></i>
           <span class="lbl-dt">Prejsť do pokladne</span>
           <span class="lbl-mob">Do pokladne</span>
@@ -112,7 +112,7 @@
 @media (max-width: 991.98px){ #confirmModal .modal-slim{max-width: 96vw; margin: 1rem auto;} }
 
 #confirmModal .rezv{
-  border:1px solid #e9ecf3; border-radius:14px;
+  border:1px solid #e9ecf3; border-radius:5px;
   overflow:hidden; display:flex; flex-direction:column;
   max-height:92dvh; background:#fff; padding:8px 12px 12px;
 }
@@ -191,7 +191,12 @@
 
 /* ========= MOBILE-ONLY TWEAKS ========= */
 @media (max-width: 575.98px){
-
+  #confirmModal .rezv__noteArea {
+    grid-area: note;
+    min-height: 100px;
+    margin-top: -26px;     /* ⬅ tighter above */
+    margin-bottom: 6px;  /* ⬅ tighter below */
+  }
   /* tighter “Sumár” */
   #confirmModal .rezv__sec{ margin:2px 0 6px; }
 
@@ -252,14 +257,160 @@
 
 <!-- ================= JS: keep badge text in sync with court ================= -->
 <script>
-(function(){
-  const modal = document.getElementById('confirmModal');
-  const badge = document.getElementById('mCourtBadge');
-  const courtEl = document.getElementById('mCourt');
-  if(!modal || !badge || !courtEl) return;
+/* ============================================================
+   === UNIVERSAL HELPERS ======================================
+   ============================================================ */
 
-  const sync = () => { badge.textContent = (courtEl.textContent || 'Kurt').trim(); };
-  modal.addEventListener('shown.bs.modal', sync);
-  new MutationObserver(sync).observe(courtEl, {childList:true, characterData:true, subtree:true});
-})();
+// Convert "13. 10. 2025" → "2025-10-13"
+function parseSkDateToISO(sk) {
+  const m = String(sk || "").match(/^\s*(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})\s*$/);
+  if (!m) return null;
+  const [_, d, mo, y] = m;
+  return `${y}-${mo.padStart(2,"0")}-${d.padStart(2,"0")}`;
+}
+
+// Get ISO date from modal label or input
+function getISODate() {
+  const input = document.querySelector('input[type="date"], #datePicker, [data-role="date-input"]');
+  if (input?.value) return input.value;
+  const lbl = document.getElementById("mDate");
+  if (lbl?.textContent) {
+    const iso = parseSkDateToISO(lbl.textContent.trim());
+    if (iso) return iso;
+  }
+  return window.currentDate || null;
+}
+
+// Get selected court id
+function getCourtId() {
+  const modal = document.getElementById("confirmModal");
+  if (modal?.dataset?.court) return String(modal.dataset.court);
+  if (window.currentCourtId) return String(window.currentCourtId);
+
+  const label = document.getElementById("mCourt");
+  const badge = document.getElementById("mCourtBadge");
+  const txt = (label?.textContent || badge?.textContent || "").trim();
+  const m = txt.match(/(\d{1,2})/);
+  return m ? m[1] : null;
+}
+
+// Show alert (replace with nicer banner if you want)
+function showErrorBanner(msg) { alert(msg); }
+
+// Safe JSON parser
+async function parseJsonSafe(res) {
+  const ct = res.headers.get("content-type") || "";
+  if (ct.includes("application/json")) return res.json();
+  const txt = await res.text();
+  try { return JSON.parse(txt); } catch { return { ok:false, error:txt || `HTTP ${res.status}` }; }
+}
+
+/* ============================================================
+   === MODAL INITIALIZATION ====================================
+   ============================================================ */
+
+// Called before showing modal
+function setModalCourt(courtId) {
+  const modal = document.getElementById("confirmModal");
+  if (!modal) return;
+  modal.dataset.court = String(courtId);
+
+  const mCourt = document.getElementById("mCourt");
+  const badge  = document.getElementById("mCourtBadge");
+  if (mCourt) mCourt.textContent = `Kurt ${courtId}`;
+  if (badge)  badge.textContent  = `Kurt ${courtId}`;
+}
+
+// Called when user selects time range on main page
+function setModalTimeAndTotal(start, end, total) {
+  document.getElementById("mTime").textContent = `${start} – ${end}`;
+  document.getElementById("mTotal").textContent = total || "15,00 €";
+  // store slot info globally
+  window.selectedSlots = buildSlotArray(start, end);
+}
+
+// Build slot array e.g. "14:30"–"15:30" => ["14:30","15:00"]
+function buildSlotArray(start, end) {
+  const toMin = s => parseInt(s.slice(0,2))*60 + parseInt(s.slice(3,5));
+  const toStr = m => `${String(Math.floor(m/60)).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
+  const out = [];
+  for (let m = toMin(start); m < toMin(end); m += 30) out.push(toStr(m));
+  return out;
+}
+
+// Fallback if slots not set globally
+function getSelectedSlots() {
+  if (Array.isArray(window.selectedSlots) && window.selectedSlots.length)
+    return window.selectedSlots;
+  const t = (document.getElementById("mTime")?.textContent || "").trim();
+  const m = t.match(/(\d{2}:\d{2}).*?(\d{2}:\d{2})/);
+  return m ? buildSlotArray(m[1], m[2]) : [];
+}
+
+/* ============================================================
+   === BOOKING FLOW ============================================
+   ============================================================ */
+
+async function confirmBooking() {
+  const payload = {
+    date:  getISODate(),
+    court: getCourtId(),
+    slots: getSelectedSlots(),
+    name:  "",
+    email: ""
+  };
+
+  console.log("[confirmBooking] payload:", payload);
+
+  if (!payload.date)  return showErrorBanner("Chýba dátum.");
+  if (!payload.court) return showErrorBanner("Chýba alebo je neplatný kurt.");
+  if (!payload.slots.length) return showErrorBanner("Nevybrali ste čas.");
+
+  try {
+    const res = await fetch("/api/book", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "same-origin"
+    });
+    const data = await parseJsonSafe(res);
+    console.log("[confirmBooking] response:", data);
+
+    if (!res.ok || !data.ok)
+      throw new Error(data.error || `HTTP ${res.status}`);
+
+    // redirect to checkout
+    const q = new URLSearchParams({
+      date: data.date,
+      court: data.court,
+      total: (document.getElementById("mTotal")?.textContent || "15,00 €").trim()
+    });
+    window.location.href = `/checkout?${q.toString()}`;
+
+  } catch (err) {
+    console.error("Booking failed:", err);
+    showErrorBanner(err.message || "Chyba spojenia. Skúste znova.");
+  }
+}
+
+/* ============================================================
+   === EVENT BINDINGS ==========================================
+   ============================================================ */
+
+// Example — when user clicks to open modal for a specific court/time
+// You can adjust this to your real logic
+document.querySelectorAll("[data-court][data-start][data-end]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const court = btn.dataset.court;
+    const start = btn.dataset.start;
+    const end   = btn.dataset.end;
+    const total = btn.dataset.total || "15,00 €";
+    setModalCourt(court);
+    setModalTimeAndTotal(start, end, total);
+    new bootstrap.Modal(document.getElementById("confirmModal")).show();
+  });
+});
+
+// Confirm button → booking
+document.getElementById("modalConfirmBtn")?.addEventListener("click", confirmBooking);
 </script>

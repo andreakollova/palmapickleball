@@ -2,20 +2,18 @@ from flask import Flask, render_template, request, jsonify
 from collections import defaultdict
 from datetime import datetime
 
+
 app = Flask(__name__)
 
-# 30-min slots: 08:00 .. 20:30 (end bound 21:00)
 def build_slots():
     out = []
-    for h in range(8, 21):  # 08..20
+    for h in range(8, 21):
         out.append(f"{h:02d}:00")
         out.append(f"{h:02d}:30")
     return out[:-1]
 
-SLOTS_30 = build_slots()  # 26
+SLOTS_30 = build_slots()
 COURTS = {"1": "Kurt 1", "2": "Kurt 2"}
-
-# demo in-memory storage
 bookings = defaultdict(lambda: {"1": set(), "2": set()})
 
 def valid_date(s: str) -> bool:
@@ -47,7 +45,7 @@ def api_availability():
 
 @app.post("/api/book")
 def api_book():
-    data = request.get_json(force=True)
+    data  = request.get_json(force=True)
     date  = data.get("date")
     court = data.get("court")
     slots = data.get("slots", [])
@@ -75,8 +73,16 @@ def api_book():
     for s in slots:
         already.add(s)
 
-    print(f"[BOOKED] {date} {COURTS[court]} -> {slots} by {name}/{email}")
+    # IMPORTANT: still return JSON (do NOT redirect here)
     return jsonify({"ok": True, "reserved": slots, "court": court, "date": date})
+
+# New checkout page (simple GET)
+@app.route("/checkout")
+def checkout():
+    date = request.args.get("date")
+    court = request.args.get("court")
+    total = request.args.get("total")
+    return render_template("checkout.html", date=date, court=court, total=total)
 
 if __name__ == "__main__":
     app.run(debug=True)

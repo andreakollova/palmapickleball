@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pokladňa – Palma Pickleball</title>
+  <h2>Checkout</h2>
+  <p>Dátum: {{ date }}</p>
+  <p>Kurt: {{ court }}</p>
+  <p>Suma: {{ total }}</p>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/modern-normalize/2.0.0/modern-normalize.min.css">
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans"; background:#f7f7fb; color:#0f172a; }
+    .wrap { max-width: 900px; margin: 40px auto; padding: 24px; background:#fff; border:1px solid #e9ecf3; border-radius:14px; }
+    h1 { margin:0 0 12px; font-size:1.5rem; }
+    .row { display:flex; gap:16px; margin:8px 0; }
+    .label { width:160px; color:#5b6472; }
+    .val { font-weight:600; }
+    .btn { display:inline-flex; align-items:center; gap:10px; padding:10px 16px; border-radius:10px; border:1px solid #3a38d6; background:#3a38d6; color:#fff; text-decoration:none; }
+    .btn:hover { background:#312fd1; border-color:#312fd1; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Pokladňa</h1>
+    <div class="row"><div class="label">Dátum</div><div class="val">{{ date }}</div></div>
+    <div class="row"><div class="label">Kurt</div><div class="val">{{ court }}</div></div>
+    <div class="row"><div class="label">Suma</div><div class="val">{{ total }}</div></div>
+    <p>Sem pôjde vaša platba / rekapitulácia…</p>
+    <a class="btn" href="{{ url_for('index') }}">Späť na výber</a>
+  </div>
+</body>
+</html>
