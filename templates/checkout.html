@@ -163,6 +163,9 @@
             <div id="couponMsg" class="small"></div>
           </div>
 
+          <!-- ===== HOLD BANNER (timer) ===== -->
+          <div id="holdTimer" class="alert alert-warning py-2 small mb-2" aria-live="polite" style="display:none;"></div>
+
           <button id="payBtn" class="btn btn-primary w-100 py-2">Zaplatiť</button>
           <div id="summaryError" class="text-danger small mt-2"></div>
 
@@ -309,9 +312,7 @@
 
   // small summary (lines) under court block
   function renderAddonsSummary(){
-    // (re)build little list of chosen add-ons below totals if you want
-    // In this version the selection is visible in the controls themselves,
-    // so nothing else is needed here. Function kept for clarity/extension.
+    // intentionally left simple
   }
 
   // ===================== COUPON LOGIC (unchanged, with memory) =====================
@@ -325,10 +326,7 @@
     const c=COUPONS[code];
     if(!c){couponMsg.textContent="Zľavový kód nie je uplatnený.";couponMsg.className="small text-danger";couponCodeApplied=null;return;}
     couponCodeApplied = code; // remember active coupon
-
-    // re-run our total calculation which will apply coupon to (base + addons)
-    recalcTotals();
-
+    recalcTotals(); // re-run totals with coupon
     couponMsg.textContent="Zľava uplatnená.";couponMsg.className="small text-success";
   });
 
@@ -347,7 +345,7 @@
     date:{{(date or "")|tojson}},
     court:{{(court or "")|tojson}},
     time: {{ (time_str or "") | tojson }},
-    rackets: getQty("qtyR"),            // send counts (metadata if backend uses it)
+    rackets: getQty("qtyR"),
     cameras: getQty("qtyC")
   };}
 
@@ -380,13 +378,70 @@
   refreshVat();
   initElements();
 
+  /* ====== HOLD TIMER: spusti odpočítavanie po inicializácii ====== */
+  (function setupHoldTimer(){
+    const el = document.getElementById('holdTimer');
+    if (!el) return;
+
+    // zdroje: ?hold_expires= / sessionStorage('hold_expires' | 'holdDeadline')
+    const qs = new URLSearchParams(location.search);
+    let raw = qs.get('hold_expires')
+             || sessionStorage.getItem('hold_expires')
+             || sessionStorage.getItem('holdDeadline');
+
+    if (!raw) { el.style.display='none'; return; }
+
+    // podpor ISO aj epoch (ms)
+    let deadline = NaN;
+    if (/^\d{10,}$/.test(raw)) {         // číslo (sekundy/ms)
+      const n = Number(raw);
+      deadline = (n < 1e12) ? n*1000 : n;
+    } else {
+      deadline = Date.parse(raw);
+    }
+    if (isNaN(deadline)) { el.style.display='none'; return; }
+
+    el.style.display='block';
+
+    function update(){
+      const sec = Math.max(0, Math.floor((deadline - Date.now())/1000));
+      const mm = String(Math.floor(sec/60)).padStart(2,'0');
+      const ss = String(sec%60).padStart(2,'0');
+
+      if (sec > 0) {
+        el.textContent = `Sloty držíme ešte ${mm}:${ss}`;
+      } else {
+        el.classList.remove('alert-warning');
+        el.classList.add('alert-danger');
+        el.textContent = 'Čas na zaplatenie vypršal. Vyberte prosím termín znova.';
+        payBtn.disabled = true;
+        try { if (mountedEl) { mountedEl.unmount(); mountedEl = null; } } catch {}
+        clearInterval(tid);
+      }
+    }
+    update();
+    const tid = setInterval(update, 1000);
+  })();
+
   // Pay
   payBtn.addEventListener("click",async()=>{
+    // ak vypršal hold a tlačidlo je zablokované, nič nerob
+    if (payBtn.disabled) return;
+
     errRight.textContent="";errLeft.textContent="";
-    if(!document.getElementById("termsCheck").checked){errRight.textContent="Musíte súhlasiť s podmienkami.";return;}
+    if(!document.getElementById("termsCheck").checked){
+      errRight.textContent="Musíte súhlasiť s podmienkami.";
+      return;
+    }
     payBtn.disabled=true;payBtn.textContent="Spracúvam…";
-    const {error}=await stripe.confirmPayment({elements,clientSecret,confirmParams:{return_url:window.location.origin+"/payment-success"}});
-    if(error){errRight.textContent=error.message;payBtn.disabled=false;payBtn.textContent="Zaplatiť";}
+    const {error}=await stripe.confirmPayment({
+      elements,clientSecret,
+      confirmParams:{return_url:window.location.origin+"/payment-success"}
+    });
+    if(error){
+      errRight.textContent=error.message;
+      payBtn.disabled=false;payBtn.textContent="Zaplatiť";
+    }
   });
 </script>
 
@@ -419,19 +474,18 @@
   label[for="haveCoupon"] {
     font-size: 0.9rem;
     position: relative;
-    top: -2px; /* move up slightly */
+    top: -2px;
   }
 
   #sum_gross {
-    font-size: 1.2rem; /* slightly larger, adjust to 1.3rem if you want it bolder */
-    font-weight: 600;  /* optional: make it stronger */
+    font-size: 1.2rem;
+    font-weight: 600;
   }
   .d-flex.justify-content-between.fw-semibold.border-top.pt-3.mb-3 span:first-child {
     font-size: 1.05rem;
   }
 
   @media (min-width: 992px) {
-    /* výška headera + malý odstup */
     :root { --header-h: 112px; }
     .order.sticky-lg-top { top: var(--header-h); z-index: 1; }
   }

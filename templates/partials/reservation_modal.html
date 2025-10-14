@@ -380,11 +380,16 @@ async function confirmBooking() {
       throw new Error(data.error || `HTTP ${res.status}`);
 
     // redirect to checkout
+    const expires = data.expires_at; // <-- nový údaj zo servera
+    if (expires) {
+      try { sessionStorage.setItem('hold_expires', expires); } catch {}
+    }
     const q = new URLSearchParams({
       date: data.date,
       court: data.court,
       total: (document.getElementById("mTotal")?.textContent || "15,00 €").trim(),
-      time:  (document.getElementById("mTime")?.textContent || "").trim()   // <— add this
+      time:  (document.getElementById("mTime")?.textContent || "").trim(),
+      hold_expires: expires || ""
     });
     window.location.href = `/checkout?${q.toString()}`;
 

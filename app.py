@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import re
 import stripe
@@ -25,21 +25,27 @@ if not STRIPE_PUBLISHABLE_KEY or not STRIPE_SECRET_KEY:
 stripe.api_key = STRIPE_SECRET_KEY
 
 # =========================
-# Booking logic (unchanged)
+# Booking logic (unchanged API, internals add expiry)
 # =========================
 def build_slots():
     out = []
     for h in range(8, 21):  # 08:00..20:30 (end bound 21:00)
         out.append(f"{h:02d}:00")
         out.append(f"{h:02d}:30")
-    return out[:-1]
+    return out   # <-- bolo out[:-1], to odstráni 20:30 a spôsobí chybu
 
 
 SLOTS_30 = build_slots()  # 26
 COURTS = {"1": "Kurt 1", "2": "Kurt 2"}
 
 # demo in-memory storage
-bookings = defaultdict(lambda: {"1": set(), "2": set()})
+# Predtým: {"1": set(), "2": set()}
+# Teraz:   {"1": {slot: {"held_at": datetime}}, "2": {...}}
+bookings = defaultdict(lambda: {"1": {}, "2": {}})
+
+# Koľko minút držíme “hold” (automaticky uvoľníme po čase)
+HOLD_MINUTES = 5
+HOLD_DELTA = timedelta(minutes=HOLD_MINUTES)
 
 
 def valid_date(s: str) -> bool:
@@ -81,6 +87,35 @@ def parse_amount_to_cents(value) -> int:
         return 0
 
 
+def cleanup_expired(now=None):
+    """
+    Vymaže z 'bookings' všetky holdy staršie než HOLD_MINUTES.
+    Volá sa pri každom /api/availability a /api/book.
+    """
+    if now is None:
+        now = datetime.utcnow()
+
+    cutoff = now - HOLD_DELTA
+    # bookings: { date: { "1": {slot: {"held_at": dt}}, "2": {...} } }
+    for date, courts in list(bookings.items()):
+        for court_id, slot_map in courts.items():
+            # zozbieraj sloty na vymazanie
+            to_delete = [slot for slot, meta in slot_map.items()
+                         if not meta or meta.get("held_at") is None or meta["held_at"] < cutoff]
+            # vymaž expirované
+            for slot in to_delete:
+                del slot_map[slot]
+
+
+def court_busy_slots_for_date(date: str, court_id: str):
+    """
+    Vracia set platných (neexpirovaných) slotov pre daný deň + kurt.
+    """
+    cleanup_expired()
+    slot_map = bookings[date][court_id]  # dict slot -> {"held_at": dt}
+    return set(slot_map.keys())
+
+
 # =========================
 # Routes
 # =========================
@@ -95,14 +130,21 @@ def api_availability():
     date = request.args.get("date")
     if not date or not valid_date(date):
         return jsonify({"ok": False, "error": "Neplatný dátum."}), 400
+
+    # vyčisti expirované a vráť iba aktívne holdy
+    cleanup_expired()
+
+    busy_1 = sorted(list(court_busy_slots_for_date(date, "1")))
+    busy_2 = sorted(list(court_busy_slots_for_date(date, "2")))
+
     return jsonify(
         {
             "ok": True,
             "date": date,
             "slots": SLOTS_30,
             "courts": {
-                "1": sorted(list(bookings[date]["1"])),
-                "2": sorted(list(bookings[date]["2"])),
+                "1": busy_1,
+                "2": busy_2,
             },
         }
     )
@@ -110,39 +152,63 @@ def api_availability():
 
 @app.post("/api/book")
 def api_book():
-    data = request.get_json(force=True)
-    date = data.get("date")
-    court = data.get("court")
-    slots = data.get("slots", [])
-    name = (data.get("name") or "").strip()
-    email = (data.get("email") or "").strip()
+    """
+    Verzia A: okamžite zablokuje (HOLD) vybrané sloty na 5 minút.
+    Po uplynutí 5 minút sa automaticky uvoľnia (cleanup_expired()).
+    """
+    try:
+        data = request.get_json(force=True) or {}
+        date  = data.get("date")
+        court = data.get("court")
+        slots = data.get("slots", [])
+        name  = (data.get("name")  or "").strip()
+        email = (data.get("email") or "").strip()
 
-    if not date or not valid_date(date):
-        return jsonify({"ok": False, "error": "Neplatný dátum."}), 400
-    if court not in COURTS:
-        return jsonify({"ok": False, "error": "Neznámy kurt."}), 400
-    if not isinstance(slots, list) or not slots:
-        return jsonify({"ok": False, "error": "Nevybrali ste čas."}), 400
-    if any(s not in SLOTS_30 for s in slots):
-        return jsonify({"ok": False, "error": "Neplatné časové sloty."}), 400
+        if not date or not valid_date(date):
+            return jsonify({"ok": False, "error": "Neplatný dátum."}), 400
+        if court not in COURTS:
+            return jsonify({"ok": False, "error": "Neznámy kurt."}), 400
+        if not isinstance(slots, list) or not slots:
+            return jsonify({"ok": False, "error": "Nevybrali ste čas."}), 400
+        if any(s not in SLOTS_30 for s in slots):
+            return jsonify({"ok": False, "error": "Neplatné časové sloty."}), 400
 
-    idxs = sorted(SLOTS_30.index(s) for s in slots)
-    if idxs != list(range(min(idxs), max(idxs) + 1)):
-        return jsonify({"ok": False, "error": "Výber musí byť súvislý."}), 400
+        # vyčisti expirované pred kontrolou konfliktov
+        cleanup_expired()
 
-    already = bookings[date][court]
-    conflicts = [s for s in slots if s in already]
-    if conflicts:
-        return jsonify(
-            {"ok": False, "error": "Konflikt: obsadené.", "conflicts": conflicts}
-        ), 409
+        # kontrola súvislého výberu
+        idxs = sorted(SLOTS_30.index(s) for s in slots)
+        if idxs != list(range(min(idxs), max(idxs) + 1)):
+            return jsonify({"ok": False, "error": "Výber musí byť súvislý."}), 400
 
-    for s in slots:
-        already.add(s)
+        # existujúce platné holdy
+        slot_map = bookings[date][court]  # dict slot -> {"held_at": dt}
 
-    # IMPORTANT: return JSON (frontend redirects to /checkout)
-    return jsonify({"ok": True, "reserved": slots, "court": court, "date": date})
+        # konflikty = slot je držaný a neexpiroval
+        conflicts = [s for s in slots if s in slot_map]
+        if conflicts:
+            return jsonify({"ok": False, "error": "Konflikt: obsadené.", "conflicts": conflicts}), 409
 
+        # nastav hold s aktuálnym časom
+        now = datetime.utcnow()
+        for s in slots:
+            slot_map[s] = {"held_at": now}
+
+        # vyrátaj expiráciu a pošli ju klientovi (ISO8601 UTC)
+        expires_at = (now + HOLD_DELTA).isoformat(timespec="seconds") + "Z"
+
+        return jsonify({
+            "ok": True,
+            "reserved": slots,
+            "court": court,
+            "date": date,
+            "expires_at": expires_at,   # klient si uloží a zobrazí timer
+            "hold_seconds": HOLD_DELTA.seconds
+        }), 200
+
+    except Exception as e:
+        # nech to nikdy nevráti None – vždy JSON s chybou
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 # =========================
 # Checkout page (GET)
