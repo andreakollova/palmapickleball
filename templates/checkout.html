@@ -289,7 +289,7 @@
             <img src="${IMG_CAMERA}" alt="Požičanie kamery POV Pro" style="width:34px;height:34px;object-fit:contain">
             <div>
               <div>Požičanie kamery POV Pro</div>
-              <div class="small text-muted">10,00&nbsp;€ / ks</div>
+              <div class="small text muted">10,00&nbsp;€ / ks</div>
             </div>
           </div>
 
@@ -421,6 +421,51 @@
     }
     update();
     const tid = setInterval(update, 1000);
+  })();
+
+  /* ===== helper: zrekonštruuj sloty z rozsahu "HH:MM – HH:MM" ===== */
+  function buildSlotsFromRange(rangeStr){
+    const m = String(rangeStr || "").match(/(\d{2}:\d{2}).*?(\d{2}:\d{2})/);
+    if (!m) return [];
+    const start = m[1], end = m[2];
+    const toMin = s => parseInt(s.slice(0,2),10)*60 + parseInt(s.slice(3,5),10);
+    const toStr = mm => `${String(Math.floor(mm/60)).padStart(2,'0')}:${String(mm%60).padStart(2,'0')}`;
+    const out = [];
+    for (let t = toMin(start); t < toMin(end); t += 30) out.push(toStr(t));
+    return out;
+  }
+
+  // ===== CONTINUE SHOPPING: release server hold + clear local + go back =====
+  (function wireBackToShop(){
+    const backBtn = document.querySelector('.order .btn.btn-outline-secondary.w-100.mt-2');
+    if (!backBtn) return;
+
+    backBtn.addEventListener('click', async (e)=>{
+      e.preventDefault();
+      backBtn.disabled = true;
+
+      const payload = {
+        date: {{ (date or "") | tojson }},
+        court: {{ (court or "") | tojson }},
+        slots: buildSlotsFromRange({{ (time_str or "") | tojson }})
+      };
+
+      try {
+        if (payload.date && payload.court && payload.slots && payload.slots.length){
+          await fetch("/api/release", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            credentials: "same-origin"
+          });
+        }
+      } catch(_) {}
+
+      try { sessionStorage.removeItem('hold_expires'); } catch {}
+      try { sessionStorage.removeItem('holdDeadline'); } catch {}
+
+      window.location.href = "{{ url_for('index') }}#rezervacia";
+    });
   })();
 
   // Pay

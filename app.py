@@ -283,7 +283,37 @@ def create_payment_intent():
 def payment_success():
     return render_template("payment_success.html")
 
+@app.post("/api/release")
+def api_release():
+    """
+    Uvoľní (zruší HOLD) pre zadané sloty.
+    Očakáva JSON: { "date": "YYYY-MM-DD", "court": "1", "slots": ["16:00","16:30"] }
+    """
+    data = request.get_json(force=True) or {}
+    date = data.get("date")
+    court = str(data.get("court") or "")
+    slots = data.get("slots") or []
 
+    if not date or not valid_date(date):
+        return jsonify({"ok": False, "error": "Neplatný dátum."}), 400
+    if court not in COURTS:
+        return jsonify({"ok": False, "error": "Neznámy kurt."}), 400
+    if not isinstance(slots, list) or not slots:
+        return jsonify({"ok": False, "error": "Chýbajú sloty."}), 400
+    if any(s not in SLOTS_30 for s in slots):
+        return jsonify({"ok": False, "error": "Neplatné časové sloty."}), 400
+
+    # odstráň expirované a uvoľni požadované sloty
+    cleanup_expired()
+    slot_map = bookings[date][court]  # dict slot -> {"held_at": dt}
+
+    released = []
+    for s in slots:
+        if s in slot_map:
+            del slot_map[s]
+            released.append(s)
+
+    return jsonify({"ok": True, "released": released})
 # =========================
 # Run
 # =========================
