@@ -44,7 +44,7 @@ COURTS = {"1": "Kurt 1", "2": "Kurt 2"}
 bookings = defaultdict(lambda: {"1": {}, "2": {}})
 
 # Koľko minút držíme “hold” (automaticky uvoľníme po čase)
-HOLD_MINUTES = 5
+HOLD_MINUTES = 10
 HOLD_DELTA = timedelta(minutes=HOLD_MINUTES)
 
 
