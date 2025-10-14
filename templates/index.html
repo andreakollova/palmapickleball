@@ -342,8 +342,20 @@
   const skDays=["Nedeľa","Pondelok","Utorok","Streda","Štvrtok","Piatok","Sobota"];
   const eur = new Intl.NumberFormat('sk-SK',{style:'currency',currency:'EUR'});
 
-  function fmt(d){return d.toISOString().slice(0,10);}
-  function parse(s){return new Date(s+"T00:00:00");}
+  function fmt(d){
+    // vracia YYYY-MM-DD v lokálnom čase (žiadne UTC)
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function parse(s){
+    // vytvorí Date striktne v lokálnom čase
+    const [y, m, d] = String(s).split('-').map(Number);
+    return new Date(y, (m || 1) - 1, d || 1);
+  }
+
   function nextTime(t){const [h,m]=t.split(':').map(Number);let H=h,M=m+30;if(M===60){H++;M=0}return `${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}`;}
 
   function setHeader(d){
