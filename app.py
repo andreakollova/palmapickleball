@@ -116,6 +116,26 @@ def court_busy_slots_for_date(date: str, court_id: str):
     return set(slot_map.keys())
 
 
+# ---------- NEW: helper to compute “blocked because past or within 30 min” (today only)
+def slots_blocked_today(now_local=None, bumper_min=30):
+    """
+    Return list of slot strings (e.g. '16:30') that should NOT be bookable today
+    because they start <= now + bumper (default 30 minutes).
+    Uses local server time for the facility.
+    """
+    if now_local is None:
+        now_local = datetime.now()
+    cutoff = now_local + timedelta(minutes=bumper_min)
+    blocked = []
+    for s in SLOTS_30:
+        hh, mm = map(int, s.split(":"))
+        slot_dt = now_local.replace(hour=hh, minute=mm, second=0, microsecond=0)
+        if slot_dt <= cutoff:
+            blocked.append(s)
+    return blocked
+# ---------- /NEW
+
+
 # =========================
 # Routes
 # =========================
@@ -137,6 +157,11 @@ def api_availability():
     busy_1 = sorted(list(court_busy_slots_for_date(date, "1")))
     busy_2 = sorted(list(court_busy_slots_for_date(date, "2")))
 
+    # ---------- NEW: add “blocked” field for today (past + 30 min bumper)
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    blocked = slots_blocked_today() if date == today_str else []
+    # ---------- /NEW
+
     return jsonify(
         {
             "ok": True,
@@ -146,6 +171,7 @@ def api_availability():
                 "1": busy_1,
                 "2": busy_2,
             },
+            "blocked": blocked,  # NEW: client can gray these out
         }
     )
 
@@ -172,6 +198,20 @@ def api_book():
             return jsonify({"ok": False, "error": "Nevybrali ste čas."}), 400
         if any(s not in SLOTS_30 for s in slots):
             return jsonify({"ok": False, "error": "Neplatné časové sloty."}), 400
+
+        # ---------- NEW: hard validation to disallow past / too-soon slots for today
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        if date == today_str:
+            now_local = datetime.now()
+            cutoff = now_local + timedelta(minutes=30)
+            for s in slots:
+                hh, mm = map(int, s.split(":"))
+                slot_dt = now_local.replace(hour=hh, minute=mm, second=0, microsecond=0)
+                if slot_dt <= cutoff:
+                    return jsonify(
+                        {"ok": False, "error": "Nie je možné rezervovať minulé alebo príliš skoré sloty."}
+                    ), 400
+        # ---------- /NEW
 
         # vyčisti expirované pred kontrolou konfliktov
         cleanup_expired()

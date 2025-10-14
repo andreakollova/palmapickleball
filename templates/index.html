@@ -190,7 +190,14 @@
     }
 
 
-</style>
+  /* NEW: visual for blocked (past/too-soon) slots */
+  .cells .cell.past{
+    opacity:.5;
+    pointer-events:auto; /* keep pointer so cursor shows but click is ignored in JS */
+    outline: 1px dashed var(--slot-dash);
+
+  }
+  </style>
 
 <section class="booking" id="book">
   <div class="container-wide">
@@ -386,6 +393,9 @@
     });
   }
 
+  // NEW: will hold list of times blocked by backend (past + 30min bumper) when viewing today
+  let BLOCKED_SET = new Set();  // set of "HH:MM" strings
+
   let activeCellsEl=null,startIdx=null,endIdx=null;
   function clearVisual(cellsEl){
     if(!cellsEl)return;
@@ -439,8 +449,20 @@
     clearVisual(cellsEl); cellsEl.innerHTML='';
     SLOTS.forEach((t,idx)=>{
       const c=document.createElement('div'); c.className='cell'; c.dataset.time=t;
+
+      // NEW: mark “past / too-soon” times for today (provided by backend)
+      // Mark “past / too-soon” like real bookings (same visuals & hover)
+      if (BLOCKED_SET.has(t)) {
+        c.classList.add('past', 'booked');   // <-- add 'booked' too
+        c.setAttribute('aria-disabled', 'true');
+        c.title = 'Tento termín už nie je možné rezervovať';
+      }
+
       if(bookedSet.has(t)) c.classList.add('booked');
+
       c.addEventListener('click',()=>{
+        // NEW: ignore clicks on past/blocked
+        if (c.classList.contains('past')) return;
         if(c.classList.contains('booked')) return;
         if(activeCellsEl && activeCellsEl!==cellsEl){clearVisual(activeCellsEl); activeCellsEl=null; startIdx=endIdx=null;}
         if(activeCellsEl===null){activeCellsEl=cellsEl; startIdx=endIdx=idx; applyVisual(cellsEl,startIdx,endIdx); return;}
@@ -464,6 +486,10 @@
     try{
       const res=await fetch(`/api/availability?date=${datePick.value}`);
       const data=await res.json();
+
+      // NEW: store blocked slots (only non-empty for today)
+      BLOCKED_SET = new Set(data.blocked || []);
+
       const booked1=new Set(data.courts["1"]||[]), booked2=new Set(data.courts["2"]||[]);
       buildCells(cells1,"1",booked1); buildCells(cells2,"2",booked2);
     } finally {
