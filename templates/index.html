@@ -345,6 +345,7 @@
   const mImg   = document.getElementById('mImg');
   const mNote  = document.getElementById('mNote');
   const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+  const mCourtBadge = document.getElementById('mCourtBadge');   // <-- ADD THIS
 
   const skDays=["Nedeľa","Pondelok","Utorok","Streda","Štvrtok","Piatok","Sobota"];
   const eur = new Intl.NumberFormat('sk-SK',{style:'currency',currency:'EUR'});
@@ -498,22 +499,28 @@
   }
 
   /* ===== Show summary popup, then confirm to book ===== */
-  document.getElementById('confirmSel').onclick=()=>{
-    if(!activeCellsEl||startIdx===null||endIdx===null) return;
+  /* ===== Show summary popup, then confirm to book ===== */
+  document.getElementById('confirmSel').onclick = () => {
+    if(!activeCellsEl || startIdx === null || endIdx === null) return;
 
-    const s=Math.min(startIdx,endIdx),
-          e=Math.max(startIdx,endIdx);
-    const label=`${SLOTS[s]} – ${nextTime(SLOTS[e])}`;
-    const courtName = activeCellsEl.dataset.court==='1'?'Kurt 1':'Kurt 2';
-    const dateStr = new Date(datePick.value+"T00:00:00").toLocaleDateString('sk-SK',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const s = Math.min(startIdx, endIdx),
+          e = Math.max(startIdx, endIdx);
+    const label = `${SLOTS[s]} – ${nextTime(SLOTS[e])}`;
+    const courtName = activeCellsEl.dataset.court === '1' ? 'Kurt 1' : 'Kurt 2';
+    const dateStr = new Date(datePick.value + "T00:00:00")
+                      .toLocaleDateString('sk-SK', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const slotsCount = (e - s + 1);
     const total = slotsCount * 15;
 
     mCourt.textContent = courtName;
+    if (mCourtBadge) mCourtBadge.textContent = courtName;     // ✅ now works — courtName already defined
+    modalEl.dataset.court = activeCellsEl.dataset.court;       // ✅ optional, stores court ID
+
     mDate.textContent  = dateStr;
     mTime.textContent  = label;
     mTotal.textContent = eur.format(total);
-    mImg.src = "{{ url_for('static', filename='__X__') }}".replace('__X__', activeCellsEl.dataset.court==='1'?'images/us1.png':'images/us2.png');
+    mImg.src = "{{ url_for('static', filename='__X__') }}"
+                  .replace('__X__', activeCellsEl.dataset.court === '1' ? 'images/us1.png' : 'images/us2.png');
     mNote.value = '';
 
     modal.show();
