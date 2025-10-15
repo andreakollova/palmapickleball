@@ -37,7 +37,7 @@
               <li class="rezv__row rezv__row--place">
                 <div class="rezv__label">Miesto</div>
                 <div class="rezv__val rezv__val--place">
-                  <!-- Desktop line (name + logo); “ Courts” added via CSS on desktop -->
+                  <!-- Desktop line (name + logo) -->
                   <div class="rezv__placeLine">
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball" class="rezv__logo">
                     <span class="rezv__placeName">Palma Pickleball</span>
@@ -142,15 +142,15 @@
 #confirmModal .rezv__label{color:#5b6472; font-weight:400; letter-spacing:.01em;}
 #confirmModal .rezv__val{color:#0f172a; font-weight:600; text-align:right;}
 
-/* Add “ Courts” after place name on DESKTOP only */
+/* Remove any desktop suffix just in case */
 @media (min-width: 576px){
-  #confirmModal .rezv__placeName::after{ content:" Courts"; }
+  #confirmModal .rezv__placeName::after{ content:""; }
 }
 
 /* Alignment helper */
 #confirmModal .rezv__left{ --align-nudge: 10px; }
 
-/* Place block (desktop defaults) */
+/* Place block defaults */
 #confirmModal .rezv__val--place{text-align:right;}
 #confirmModal .rezv__placeLine{display:flex; align-items:center; justify-content:flex-end; gap:8px;}
 #confirmModal .rezv__logo{height:18px; width:auto; opacity:.95;}
@@ -191,41 +191,24 @@
 
 /* ========= MOBILE-ONLY TWEAKS ========= */
 @media (max-width: 575.98px){
-  #confirmModal .rezv__noteArea {
-    grid-area: note;
-    min-height: 100px;
-    margin-top: -26px;     /* ⬅ tighter above */
-    margin-bottom: 6px;  /* ⬅ tighter below */
-  }
-  /* tighter “Sumár” */
+  #confirmModal .rezv__noteArea { grid-area: note; min-height: 100px; margin-top: -26px; margin-bottom: 6px; }
   #confirmModal .rezv__sec{ margin:2px 0 6px; }
-
-  /* more room for values */
   #confirmModal .rezv__row{ --label-w:120px; gap:8px; }
 
-  /* make the address block smaller on mobile */
-  #confirmModal .rezv__placeLine{ display:none; }  /* hide desktop header line */
+  /* mobile: show compact name+logo in the address block, hide the desktop title row */
+  #confirmModal .rezv__placeLine{ display:none; }
   #confirmModal .rezv__val--place{ text-align:right; }
   #confirmModal .addr-logo{ display:inline-block; height:14px; margin-right:6px; opacity:.95; position:relative; top:1px; }
   #confirmModal .addr-name{ font-weight:700; color:#111827; font-size:.9rem; }
   #confirmModal .addr-street,
   #confirmModal .addr-area,
-  #confirmModal .addr-zip {
-    font-weight:400;
-    color:#6b7280;
-    font-size:.72rem;
-    line-height:0.35; /* reduced line spacing */
-  }
+  #confirmModal .addr-zip { font-weight:400; color:#6b7280; font-size:.72rem; line-height:0.35; }
 
-  /* order: sec -> list (with price) -> NOTE -> IMAGE */
+  /* order and widths */
   #confirmModal .rezv__grid{
     display:grid;
     grid-template-columns:1fr;
-    grid-template-areas:
-      "sec"
-      "list"
-      "note"
-      "media";
+    grid-template-areas:"sec" "list" "note" "media";
     row-gap:14px;
   }
   #confirmModal .rezv__left{ display:contents; }
@@ -234,16 +217,13 @@
   #confirmModal .rezv__noteArea{ grid-area:note; min-height:110px; }
   #confirmModal .rezv__right{ grid-area:media; }
 
-  /* keep total on one line; align edges */
   #confirmModal .rezv__left{ --align-nudge:10px; }
   #confirmModal .rezv__row--total{ white-space:nowrap; padding-right:4px; }
   #confirmModal .rezv__row--total.rezv__align-left{ margin-left:calc(-1 * var(--align-nudge)); width:calc(100% + var(--align-nudge)); }
   #confirmModal .rezv__note.rezv__align-left{ margin-left:calc(-1 * var(--align-nudge)); width:calc(100% + var(--align-nudge)); }
 
-  /* image alignment */
   #confirmModal .rezv__media{ margin-left:-10px; width:calc(100% + 10px); margin-top:-8px; }
 
-  /* short button labels */
   #confirmModal .lbl-dt{ display:none; }
   #confirmModal .lbl-mob{ display:inline; }
 }
@@ -253,6 +233,47 @@
   #confirmModal .lbl-dt{ display:inline; }
   #confirmModal .lbl-mob{ display:none; }
 }
+
+/* ===== DESKTOP-ONLY FIXES ===== */
+@media (min-width: 992px){
+  /* show main title line with logo, style it stronger & larger */
+  #confirmModal .rezv__placeLine{
+    display:flex !important;
+    align-items:center;
+    justify-content:flex-end;
+    gap:10px;
+    margin:0;
+  }
+  #confirmModal .rezv__logo{ height:20px; opacity:.98; }
+  #confirmModal .rezv__placeName{
+    font-size:1.12rem;
+    font-weight:750;
+    color:#0f172a;
+    letter-spacing:.005em;
+    line-height:1.05;
+  }
+
+  /* hide the small duplicate name/logo inside the address block on desktop */
+  #confirmModal .rezv__addr .addr-name,
+  #confirmModal .rezv__addr .addr-logo{
+    display:none !important;
+  }
+
+  /* IMPORTANT: also hide the <br> that sits after .addr-name to remove the blank line */
+  #confirmModal .rezv__addr br{
+    display:none !important;
+  }
+
+  /* stack title + address with minimal spacing */
+  #confirmModal .rezv__val--place{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:2px;            /* tiny gap between the two lines */
+    line-height:1.1;
+  }
+  #confirmModal .rezv__addr{ margin:0 !important; }
+}
 </style>
 
 <!-- ================= JS: keep badge text in sync with court ================= -->
@@ -260,16 +281,12 @@
 /* ============================================================
    === UNIVERSAL HELPERS ======================================
    ============================================================ */
-
-// Convert "13. 10. 2025" → "2025-10-13"
 function parseSkDateToISO(sk) {
   const m = String(sk || "").match(/^\s*(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})\s*$/);
   if (!m) return null;
   const [_, d, mo, y] = m;
   return `${y}-${mo.padStart(2,"0")}-${d.padStart(2,"0")}`;
 }
-
-// Get ISO date from modal label or input
 function getISODate() {
   const input = document.querySelector('input[type="date"], #datePicker, [data-role="date-input"]');
   if (input?.value) return input.value;
@@ -280,24 +297,17 @@ function getISODate() {
   }
   return window.currentDate || null;
 }
-
-// Get selected court id
 function getCourtId() {
   const modal = document.getElementById("confirmModal");
   if (modal?.dataset?.court) return String(modal.dataset.court);
   if (window.currentCourtId) return String(window.currentCourtId);
-
   const label = document.getElementById("mCourt");
   const badge = document.getElementById("mCourtBadge");
   const txt = (label?.textContent || badge?.textContent || "").trim();
   const m = txt.match(/(\d{1,2})/);
   return m ? m[1] : null;
 }
-
-// Show alert (replace with nicer banner if you want)
 function showErrorBanner(msg) { alert(msg); }
-
-// Safe JSON parser
 async function parseJsonSafe(res) {
   const ct = res.headers.get("content-type") || "";
   if (ct.includes("application/json")) return res.json();
@@ -308,28 +318,20 @@ async function parseJsonSafe(res) {
 /* ============================================================
    === MODAL INITIALIZATION ====================================
    ============================================================ */
-
-// Called before showing modal
 function setModalCourt(courtId) {
   const modal = document.getElementById("confirmModal");
   if (!modal) return;
   modal.dataset.court = String(courtId);
-
   const mCourt = document.getElementById("mCourt");
   const badge  = document.getElementById("mCourtBadge");
   if (mCourt) mCourt.textContent = `Kurt ${courtId}`;
   if (badge)  badge.textContent  = `Kurt ${courtId}`;
 }
-
-// Called when user selects time range on main page
 function setModalTimeAndTotal(start, end, total) {
   document.getElementById("mTime").textContent = `${start} – ${end}`;
   document.getElementById("mTotal").textContent = total || "15,00 €";
-  // store slot info globally
   window.selectedSlots = buildSlotArray(start, end);
 }
-
-// Build slot array e.g. "14:30"–"15:30" => ["14:30","15:00"]
 function buildSlotArray(start, end) {
   const toMin = s => parseInt(s.slice(0,2))*60 + parseInt(s.slice(3,5));
   const toStr = m => `${String(Math.floor(m/60)).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
@@ -337,8 +339,6 @@ function buildSlotArray(start, end) {
   for (let m = toMin(start); m < toMin(end); m += 30) out.push(toStr(m));
   return out;
 }
-
-// Fallback if slots not set globally
 function getSelectedSlots() {
   if (Array.isArray(window.selectedSlots) && window.selectedSlots.length)
     return window.selectedSlots;
@@ -350,7 +350,6 @@ function getSelectedSlots() {
 /* ============================================================
    === BOOKING FLOW ============================================
    ============================================================ */
-
 async function confirmBooking() {
   const payload = {
     date:  getISODate(),
@@ -359,13 +358,9 @@ async function confirmBooking() {
     name:  "",
     email: ""
   };
-
-  console.log("[confirmBooking] payload:", payload);
-
   if (!payload.date)  return showErrorBanner("Chýba dátum.");
   if (!payload.court) return showErrorBanner("Chýba alebo je neplatný kurt.");
   if (!payload.slots.length) return showErrorBanner("Nevybrali ste čas.");
-
   try {
     const res = await fetch("/api/book", {
       method: "POST",
@@ -374,16 +369,9 @@ async function confirmBooking() {
       credentials: "same-origin"
     });
     const data = await parseJsonSafe(res);
-    console.log("[confirmBooking] response:", data);
-
-    if (!res.ok || !data.ok)
-      throw new Error(data.error || `HTTP ${res.status}`);
-
-    // redirect to checkout
-    const expires = data.expires_at; // <-- nový údaj zo servera
-    if (expires) {
-      try { sessionStorage.setItem('hold_expires', expires); } catch {}
-    }
+    if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const expires = data.expires_at;
+    if (expires) { try { sessionStorage.setItem('hold_expires', expires); } catch {} }
     const q = new URLSearchParams({
       date: data.date,
       court: data.court,
@@ -392,9 +380,7 @@ async function confirmBooking() {
       hold_expires: expires || ""
     });
     window.location.href = `/checkout?${q.toString()}`;
-
   } catch (err) {
-    console.error("Booking failed:", err);
     showErrorBanner(err.message || "Chyba spojenia. Skúste znova.");
   }
 }
@@ -402,9 +388,6 @@ async function confirmBooking() {
 /* ============================================================
    === EVENT BINDINGS ==========================================
    ============================================================ */
-
-// Example — when user clicks to open modal for a specific court/time
-// You can adjust this to your real logic
 document.querySelectorAll("[data-court][data-start][data-end]").forEach(btn => {
   btn.addEventListener("click", () => {
     const court = btn.dataset.court;
@@ -416,7 +399,5 @@ document.querySelectorAll("[data-court][data-start][data-end]").forEach(btn => {
     new bootstrap.Modal(document.getElementById("confirmModal")).show();
   });
 });
-
-// Confirm button → booking
 document.getElementById("modalConfirmBtn")?.addEventListener("click", confirmBooking);
 </script>
