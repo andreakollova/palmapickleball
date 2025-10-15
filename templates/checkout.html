@@ -469,23 +469,70 @@
   })();
 
   // Pay
-  payBtn.addEventListener("click",async()=>{
-    // ak vypršal hold a tlačidlo je zablokované, nič nerob
+  // Pay
+  payBtn.addEventListener("click", async () => {
     if (payBtn.disabled) return;
 
-    errRight.textContent="";errLeft.textContent="";
-    if(!document.getElementById("termsCheck").checked){
-      errRight.textContent="Musíte súhlasiť s podmienkami.";
+    errRight.textContent = "";
+    errLeft.textContent  = "";
+
+    if (!document.getElementById("termsCheck").checked) {
+      errRight.textContent = "Musíte súhlasiť s podmienkami.";
       return;
     }
-    payBtn.disabled=true;payBtn.textContent="Spracúvam…";
-    const {error}=await stripe.confirmPayment({
-      elements,clientSecret,
-      confirmParams:{return_url:window.location.origin+"/payment-success"}
-    });
-    if(error){
-      errRight.textContent=error.message;
-      payBtn.disabled=false;payBtn.textContent="Zaplatiť";
+
+    payBtn.disabled = true;
+    payBtn.textContent = "Spracúvam…";
+
+    // Build success URL (so zobrazíš sumár)
+    const successBase = "{{ url_for('rezervacia_uspesna', _external=True) }}";
+    const successUrl =
+      successBase
+      + "?date="  + encodeURIComponent({{ (date or "")    | tojson }})
+      + "&time="  + encodeURIComponent({{ (time_str or "")| tojson }})
+      + "&court=" + encodeURIComponent("Kurt " + {{ (court or "") | tojson }})
+      + "&total=" + encodeURIComponent(totalText());
+
+    try {
+      // ✅ REQUIRED for Link / autofill / deferred flow
+      const { error: submitError } = await elements.submit();
+      if (submitError) {
+        errRight.textContent = submitError.message || "Chyba pri odoslaní platobných údajov.";
+        payBtn.disabled = false;
+        payBtn.textContent = "Zaplatiť";
+        return;
+      }
+
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        redirect: 'if_required',              // 3DS → Stripe urobí redirect na return_url
+        confirmParams: { return_url: successUrl }
+      });
+
+      if (error) {
+        errRight.textContent = error.message || "Platbu sa nepodarilo potvrdiť.";
+        payBtn.disabled = false;
+        payBtn.textContent = "Zaplatiť";
+        return;
+      }
+
+      // Bez 3DS: rovno presmeruj na úspech
+      if (paymentIntent &&
+          (paymentIntent.status === 'succeeded' ||
+           paymentIntent.status === 'processing' ||
+           paymentIntent.status === 'requires_capture')) {
+        window.location.href = successUrl + "&pi=" + encodeURIComponent(paymentIntent.id);
+        return;
+      }
+
+      // Fallback
+      payBtn.disabled = false;
+      payBtn.textContent = "Zaplatiť";
+    } catch (e) {
+      errRight.textContent = e.message || "Neznáma chyba.";
+      payBtn.disabled = false;
+      payBtn.textContent = "Zaplatiť";
     }
   });
 </script>

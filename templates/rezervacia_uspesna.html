@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="success-page d-flex flex-column align-items-center justify-content-center text-center py-5">
+  <div class="container" style="max-width: 560px;">
+    <div class="checkmark mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" fill="none" viewBox="0 0 24 24" stroke="#3a38d6" stroke-width="1.8">
+        <circle cx="12" cy="12" r="10" stroke="#3a38d6" stroke-width="1.8" fill="rgba(58,56,214,0.06)"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12.5l3 3 5-6.5" />
+      </svg>
+    </div>
+
+    <h2 class="fw-bold mb-3">Rezervácia bola úspešná 🎉</h2>
+    <p class="text-muted mb-4">
+      Tvoja platba prebehla úspešne a kurt je rezervovaný. Tešíme sa na tvoju hru!
+    </p>
+
+    {% if date and time and court %}
+    <div class="summary-card text-start mx-auto p-4 mb-4">
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted">Kurt</span>
+        <strong>{{ court }}</strong>
+      </div>
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted">Dátum</span>
+        <strong>{{ date }}</strong>
+      </div>
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted">Čas</span>
+        <strong>{{ time }}</strong>
+      </div>
+      {% if total %}
+      <div class="d-flex justify-content-between border-top pt-2">
+        <span class="text-muted">Suma</span>
+        <strong class="text-accent">{{ total }}</strong>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <a href="/" class="btn btn-accent px-4 py-2 rounded-pill d-inline-flex align-items-center gap-2">
+      <i class="fa-solid fa-arrow-left"></i> Späť na hlavnú stránku
+    </a>
+  </div>
+</section>
+
+<style>
+.success-page {
+  min-height: 80vh;
+  background: linear-gradient(180deg,#ffffff 0%,#fafbff 100%);
+}
+.checkmark svg {
+  width: 86px; height: 86px;
+}
+.summary-card {
+  background:#fff;
+  border:1px solid #e9ecf3;
+  border-radius:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+  max-width:400px;
+}
+.text-accent { color:#3a38d6; }
+.btn-accent {
+  background:#3a38d6; color:#fff; border:none;
+}
+.btn-accent:hover {
+  background:#312fd1; color:#fff;
+}
+</style>
+{% endblock %}

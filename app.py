@@ -316,12 +316,24 @@ def create_payment_intent():
         return jsonify({"error": str(e)}), 500
 
 
-# =========================
-# Simple success page
-# =========================
 @app.get("/payment-success")
 def payment_success():
     return render_template("payment_success.html")
+@app.route("/rezervacia-uspesna")
+def rezervacia_uspesna():
+    # optional query parameters passed from checkout
+    date = request.args.get("date")
+    time = request.args.get("time")
+    court = request.args.get("court")
+    total = request.args.get("total")
+
+    return render_template(
+        "rezervacia_uspesna.html",
+        date=date,
+        time=time,
+        court=court,
+        total=total
+    )
 
 @app.post("/api/release")
 def api_release():
