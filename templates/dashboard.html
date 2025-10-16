@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Môj profil{% endblock %}
+
+{% block content %}
+<style>
+  :root{
+    --accent:#3a38d6;
+    --border:#e7e9ef;
+    --muted:#667085;
+    --shadow:0 6px 24px rgba(16, 24, 40, .06);
+  }
+
+  .dash-wrap{
+    background:linear-gradient(180deg,#fff 0%,#fafbff 100%);
+    padding:32px 0 64px;
+  }
+  .dash-wrap .container-narrow{
+    width:100%;max-width:960px;margin:0 auto;padding:0 24px;
+  }
+
+  .card-plain{
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:#fff;
+    box-shadow:var(--shadow);
+  }
+
+  .avatar{
+    width:96px;height:96px;border-radius:999px;object-fit:cover;
+    border:2px solid var(--border);
+    background:#f4f5f7;
+  }
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:.65rem 1rem;border-radius:10px;border:1px solid var(--border);
+    background:#fff;color:#111;text-decoration:none;
+  }
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .btn:hover{filter:brightness(.97);text-decoration:none;}
+
+  .section-head{
+    font-weight:700;font-size:1.1rem;margin-top:1.5rem;margin-bottom:.75rem;
+  }
+
+  .reservations-list{
+    list-style:none;padding:0;margin:0;display:grid;gap:10px;
+  }
+  .reservations-list li{
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px 16px;
+    background:#fafbfd;
+  }
+  .muted{color:var(--muted);}
+</style>
+
+<section class="dash-wrap">
+  <div class="container-narrow">
+    <div class="card-plain p-4 p-md-5">
+      <div class="d-flex flex-column flex-md-row align-items-center gap-4 mb-4">
+        <img src="{{ url_for('static', filename='images/default-avatar.png') }}"
+             alt="Profilová fotka" class="avatar">
+        <div>
+          <h1 class="fw-bold mb-1" style="font-size:1.6rem;">Vitaj späť 👋</h1>
+          {% if email %}
+            <p class="muted mb-2">{{ email }}</p>
+          {% else %}
+            <p class="muted mb-2">Tvoj profilový e-mail sa zobrazí tu.</p>
+          {% endif %}
+          <a href="/" class="btn btn-primary btn-sm mt-1">Späť na hlavnú stránku</a>
+        </div>
+      </div>
+
+      <div class="section-head">Tvoje rezervácie</div>
+      <ul class="reservations-list">
+        <li>
+          <strong>Kurt 1 • 14. októbra 2025</strong><br>
+          <span class="muted">18:00 – 19:30 • Palma Pickleball Bratislava</span>
+        </li>
+        <li>
+          <strong>Kurt 2 • 8. októbra 2025</strong><br>
+          <span class="muted">19:30 – 21:00 • Palma Pickleball Bratislava</span>
+        </li>
+      </ul>
+
+      <div class="section-head">Členstvo & výhody</div>
+      <p class="muted mb-3">
+        Sleduj pripravované akcie, zľavy a komunitné turnaje Palma Pickleball.
+        Ako člen máš prioritu pri rezerváciách a prístup k exkluzívnym eventom.
+      </p>
+      <a href="#" class="btn">Zisti viac o členstve</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

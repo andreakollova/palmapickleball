@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block title %}Vytvoriť účet{% endblock %}
+
+{% block content %}
+
+<style>
+  :root{
+    --accent:#3a38d6;
+    --border:#e7e9ef;
+    --muted:#667085;
+    --shadow:0 6px 24px rgba(16, 24, 40, .06);
+  }
+
+  .reg-wrap{
+    background: linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
+    padding: 32px 0 64px;
+  }
+  .reg-wrap .container-narrow{
+    width:100%; max-width:720px; margin:0 auto; padding:0 24px;
+  }
+  @media (max-width:575.98px){
+    .reg-wrap{padding:20px 0 40px;}
+    .reg-wrap .container-narrow{padding:0 16px;}
+  }
+
+  .card-plain{
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:#fff;
+    box-shadow:var(--shadow);
+  }
+
+  .h-title{
+    font-weight:800; letter-spacing:.01em;
+    text-align:center;
+    font-size: clamp(1.4rem, 1.1rem + 1.2vw, 2rem);
+    margin-bottom:.25rem;
+  }
+  .h-sub{color:var(--muted); text-align:center; margin:0 0 18px;}
+
+  .form-label{font-size:.95rem; font-weight:500; margin-bottom:.35rem;}
+  .form-control{padding:.65rem .75rem; border-color:#e5e7eb;}
+  .helper{font-size:.9rem;color:var(--muted);}
+  .actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px;
+       padding:.65rem 1rem; border-radius:10px; border:1px solid var(--border);
+       background:#fff; color:#111; text-decoration:none;}
+  .btn-primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .btn:hover{filter:brightness(.98); text-decoration:none;}
+  .sep{height:1px;background:#eff1f5;margin:16px 0;}
+
+  /* Image picker */
+  .avatar-wrap{display:flex; align-items:center; gap:16px;}
+  .avatar{
+    width:72px; height:72px; border-radius:999px; background:#f3f4f6; flex:0 0 auto;
+    border:1px solid var(--border); object-fit:cover;
+  }
+  .file-hint{font-size:.88rem; color:var(--muted);}
+  .pw-toggle{
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    border:0; background:transparent; padding:4px; cursor:pointer; color:#6b7280;
+  }
+  .pw-group{position:relative;}
+  .pw-meter{height:6px; border-radius:6px; background:#f1f3f8; overflow:hidden;}
+  .pw-meter > span{display:block; height:100%; width:0%; background:#ef4444; transition:width .2s, background .2s; border-radius:6px;}
+  .text-danger{color:#b91c1c; font-size:.88rem;}
+</style>
+
+<section class="reg-wrap">
+  <div class="container-narrow">
+    <div class="card-plain p-4 p-md-5">
+
+      <h1 class="h-title">Vytvoriť účet</h1>
+      <p class="h-sub">Spravuj rezervácie, fakturačné údaje a históriu platieb na jednom mieste.</p>
+
+      <form method="post" action="/registracia" enctype="multipart/form-data" id="regForm" novalidate>
+        <!-- Name -->
+        <div class="mb-3">
+          <label class="form-label" for="name">Meno a priezvisko</label>
+          <input type="text" class="form-control" id="name" name="name" placeholder="Tvoje meno" required>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+          <label class="form-label" for="email">E-mail</label>
+          <input type="email" class="form-control" id="email" name="email" placeholder="tvoj@email.sk" required>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-2 pw-group">
+          <label class="form-label" for="pw1">Heslo</label>
+          <input type="password" class="form-control" id="pw1" name="password" placeholder="Zvoľ si heslo" minlength="6" required>
+          <button class="pw-toggle" type="button" aria-label="Zobraziť/Skryť heslo" data-target="pw1">Zobraziť</button>
+        </div>
+        <div class="mb-3">
+          <div class="pw-meter" aria-hidden="true"><span id="pwBar"></span></div>
+          <div class="helper mt-1" id="pwHint">Minimálne 6 znakov.</div>
+        </div>
+
+        <!-- Confirm password -->
+        <div class="mb-1 pw-group">
+          <label class="form-label" for="pw2">Potvrdiť heslo</label>
+          <input type="password" class="form-control" id="pw2" placeholder="Zopakuj heslo" minlength="6" required>
+          <button class="pw-toggle" type="button" aria-label="Zobraziť/Skryť heslo" data-target="pw2">Zobraziť</button>
+        </div>
+        <div class="mb-3" id="pwErr" style="display:none;">
+          <div class="text-danger">Heslá sa nezhodujú.</div>
+        </div>
+
+        <!-- Avatar -->
+        <div class="mb-3">
+          <label class="form-label">Profilová fotka (nepovinné)</label>
+          <div class="avatar-wrap">
+            <img id="avatarPreview" class="avatar" alt="Náhľad" src="data:image/svg+xml;utf8,
+              <svg xmlns='http://www.w3.org/2000/svg' width='72' height='72'>
+                <rect width='100%%' height='100%%' fill='%%23f3f4f6'/>
+                <circle cx='36' cy='28' r='14' fill='%%23e5e7eb'/>
+                <rect x='12' y='48' width='48' height='16' rx='8' fill='%%23e5e7eb'/>
+              </svg>">
+            <div>
+              <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+              <div class="file-hint mt-1">Podporované: JPG, PNG. Max ~5 MB (doporučené).</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit">Vytvoriť účet</button>
+          <a href="/login" class="btn">Mám účet – prihlásiť sa</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+  // ========== Show/hide password ==========
+  document.querySelectorAll('.pw-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-target');
+      const input = document.getElementById(id);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = 'Skryť';
+      } else {
+        input.type = 'password';
+        btn.textContent = 'Zobraziť';
+      }
+    });
+  });
+
+  // ========== Password strength ==========
+  const pw1 = document.getElementById('pw1');
+  const pw2 = document.getElementById('pw2');
+  const pwBar = document.getElementById('pwBar');
+  const pwHint = document.getElementById('pwHint');
+  const pwErr = document.getElementById('pwErr');
+
+  function scorePassword(pw){
+    let s = 0;
+    if (!pw) return 0;
+    if (pw.length >= 6) s += 25;
+    if (pw.length >= 10) s += 15;
+    if (/[A-Z]/.test(pw)) s += 20;
+    if (/[a-z]/.test(pw)) s += 10;
+    if (/\d/.test(pw)) s += 15;
+    if (/[^A-Za-z0-9]/.test(pw)) s += 15;
+    return Math.min(100, s);
+  }
+
+  function renderPwStrength(){
+    const val = pw1.value || '';
+    const sc = scorePassword(val);
+    pwBar.style.width = sc + '%';
+    if (sc < 35) { pwBar.style.background = '#ef4444'; pwHint.textContent = 'Slabé heslo'; }
+    else if (sc < 70) { pwBar.style.background = '#f59e0b'; pwHint.textContent = 'Stredné heslo'; }
+    else { pwBar.style.background = '#10b981'; pwHint.textContent = 'Silné heslo'; }
+  }
+
+  pw1.addEventListener('input', renderPwStrength);
+  renderPwStrength();
+
+  // ========== Confirm password ==========
+  function checkPwMatch(){
+    if (!pw1.value || !pw2.value) { pwErr.style.display='none'; return true; }
+    if (pw1.value !== pw2.value) { pwErr.style.display='block'; return false; }
+    pwErr.style.display='none'; return true;
+  }
+  pw1.addEventListener('input', checkPwMatch);
+  pw2.addEventListener('input', checkPwMatch);
+
+  // ========== Avatar preview ==========
+  const fileInput = document.getElementById('avatar');
+  const previewImg = document.getElementById('avatarPreview');
+  fileInput.addEventListener('change', (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    if (!f.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{ previewImg.src = ev.target.result; };
+    reader.readAsDataURL(f);
+  });
+
+  // ========== Simple client-side guard ==========
+  document.getElementById('regForm').addEventListener('submit', (e)=>{
+    if (!checkPwMatch()){
+      e.preventDefault();
+      pw2.focus();
+    }
+  });
+</script>
+
+{% endblock %}
