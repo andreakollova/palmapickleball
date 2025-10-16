@@ -368,23 +368,20 @@ def rezervacia_uspesna():
         total=total,
         email=email   # <-- NEW
     )
-@app.route("/registracia", methods=["GET"])
-def registracia_get():
-    """
-    Zobrazí registračný formulár (čistý frontend).
-    Ak chceš predvyplniť e-mail (napr. po checkoute), môžeš poslať ?email=...
-    """
-    prefill_email = request.args.get("email", "")
-    return render_template("registracia.html", email=prefill_email)
+@app.route("/registracia", methods=["GET","POST"])
+def registracia():
+    return render_template("registracia.html")
 
-@app.route("/registracia", methods=["POST"])
-def registracia_post():
-    """
-    Len frontendový “submit”: nič neukladá, iba presmeruje na dashboard.
-    Na demonštráciu vezmeme e-mail z formulára a pošleme ho v query stringu.
-    """
-    email = (request.form.get("email") or "").strip()
-    return redirect(url_for("dashboard", email=email))
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        # for now, frontend only – no login logic yet
+        email = request.form.get("email")
+        password = request.form.get("password")
+        # (optional) add a fake error if you want to test the message
+        # return render_template("login.html", error_message="Nesprávny email alebo heslo.")
+
+    return render_template("login.html")
 
 @app.route("/dashboard")
 def dashboard():

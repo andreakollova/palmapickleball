@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Prihlásenie{% endblock %}
+
+{% block content %}
+<style>
+  :root{
+    --accent:#3a38d6;
+    --border:#e7e9ef;
+    --muted:#667085;
+  }
+  .auth-wrap{
+    background: linear-gradient(180deg,#fff 0%,#fafbff 100%);
+    padding:32px 0 80px;
+  }
+  .auth-card{
+    max-width:600px; width:100%;
+    background:#fff; border:1px solid var(--border);
+    border-radius:16px; box-shadow:0 6px 24px rgba(16,24,40,.06);
+  }
+  .btn-primary{background:var(--accent);border-color:var(--accent);}
+  .btn-primary:hover{filter:brightness(.96);}
+  .form-label{font-weight:500;}
+  .form-floating>.form-control{padding:.9rem .75rem;}
+  .pw-toggle{
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    padding:.25rem .55rem; font-size:.85rem;
+  }
+  .alert-soft{
+    border:1px solid #fde2e1; background:#fff6f6; color:#7f1d1d;
+    border-radius:12px; padding:10px 12px;
+  }
+</style>
+
+<main class="auth-wrap d-flex flex-column align-items-center">
+  <div class="auth-card p-4 p-md-5">
+
+    <form method="POST" action="/login" novalidate>
+      <h1 class="h3 mb-2 text-center">Prihlásenie do účtu</h1>
+      <p class="text-muted text-center mb-4">Vitaj späť v&nbsp;Palma Pickleball.</p>
+
+      {% if error_message %}
+        <div class="alert-soft mb-3">{{ error_message }}</div>
+      {% endif %}
+
+      <!-- Email -->
+      <div class="form-floating mb-4">
+        <input type="email" class="form-control" id="email" name="email"
+               placeholder="meno@domena.sk" required>
+        <label for="email">Emailová adresa</label>
+      </div>
+
+      <!-- Heslo -->
+      <div class="form-floating mb-2 position-relative">
+        <input type="password" class="form-control" id="password" name="password"
+               placeholder="Heslo" minlength="6" required>
+        <label for="password">Heslo</label>
+        <button type="button" class="btn btn-outline-secondary btn-sm pw-toggle" id="pwToggle">Zobraziť</button>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="remember" name="remember">
+          <label class="form-check-label" for="remember" style="color:#111827;">Zapamätať si ma</label>
+        </div>
+        <a href="#" class="text-decoration-none" style="color:var(--accent);">Zabudnuté heslo?</a>
+      </div>
+
+      <button class="btn btn-primary w-100 py-2 mb-3" type="submit">Prihlásiť sa</button>
+
+      <div class="text-center mt-2">
+        <small class="text-muted">
+          Ešte nemáš účet?
+          <a href="/registracia" class="text-decoration-none" style="color:var(--accent);">Vytvor si účet</a>.
+        </small>
+      </div>
+    </form>
+
+  </div>
+</main>
+
+<script>
+  // Toggle visibility for password field
+  (function(){
+    const inp = document.getElementById('password');
+    const btn = document.getElementById('pwToggle');
+    if(!inp || !btn) return;
+    btn.addEventListener('click', ()=>{
+      const isPw = inp.type === 'password';
+      inp.type = isPw ? 'text' : 'password';
+      btn.textContent = isPw ? 'Skryť' : 'Zobraziť';
+      inp.focus();
+    });
+  })();
+</script>
+{% endblock %}
+
+{% block footer %}{% endblock %}
