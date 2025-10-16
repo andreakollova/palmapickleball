@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Profil{% endblock %}
+
+{% block content %}
+<style>
+  :root{
+    --accent:#3a38d6;
+    --border:#e7e9ef;
+    --muted:#667085;
+    --ink:#111;
+    --bg-grad: linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
+    --shadow: 0 6px 24px rgba(16,24,40,.06);
+  }
+
+  .dash-wrap{background:var(--bg-grad); padding:24px 0 48px;}
+  .dash-container{max-width:1100px; margin:0 auto; padding:0 24px;}
+  @media (max-width:575.98px){ .dash-container{padding:0 16px;} }
+
+  /* ===== Layout ===== */
+  .dash-grid{display:grid; grid-template-columns: 240px 1fr; gap:18px;}
+  @media (max-width: 992px){ .dash-grid{grid-template-columns: 1fr;} }
+
+  /* ===== Sidebar (rovnaký ako na dashboarde) ===== */
+  .side{
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:#fff;
+    box-shadow:var(--shadow);
+    padding:16px;
+    position:sticky; top:92px;
+    height:fit-content;
+  }
+  .mebox{display:flex; gap:12px; align-items:center; border-bottom:1px dashed var(--border); padding-bottom:12px; margin-bottom:12px;}
+  .avatar{width:46px;height:46px;border-radius:999px;object-fit:cover;border:1px solid #eef0f5;background:#f6f7fb;}
+  .hello{font-weight:700; letter-spacing:.01em; color:var(--ink);}
+  .hello .sub{display:none;}
+
+  .navlist{list-style:none; padding:0; margin:0;}
+  .navlist li{margin:2px 0;}
+  .navlink{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px;
+    color:#111; text-decoration:none; border:1px solid transparent;
+  }
+  .navlink:hover{background:#fafbff; border-color:#eef0f5; text-decoration:none;}
+  .navlink.active{background:#f3f4ff; border-color:#dfe1ff; color:#2b2acb;}
+
+  /* ===== Content ===== */
+  .card{border:1px solid var(--border); border-radius:14px; background:#fff; box-shadow:var(--shadow);}
+  .card-head{padding:18px 18px; border-bottom:1px solid var(--border);}
+  .card-body{padding:18px;}
+
+  /* Info rows */
+  .info-list{display:grid; gap:12px; margin:0; padding:0;}
+  .row-item{
+    display:grid; grid-template-columns: 140px 1fr; align-items:center;
+    padding:10px 12px; border:1px dashed #eff1f5; border-radius:12px; background:#fafbfd;
+  }
+  .label{color:var(--muted); font-weight:400;}   /* lighter labels */
+  .value{color:var(--ink); font-weight:400;}
+  .value.mono{letter-spacing:.06em;}
+
+  /* Hint box */
+  .note{
+    border:1px solid #e6f4ea; background:#f6fcf8; color:#14532d;
+    padding:12px 14px; border-radius:12px; font-size:.95rem;
+  }
+
+  /* Buttons – tenšie, v našom štýle */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:.48rem .9rem; border-radius:12px; border:1px solid var(--border);
+    background:#fff; color:#111; text-decoration:none; font-weight:400; /* lighter buttons */
+    line-height:1.15;
+  }
+  .btn:hover{filter:brightness(.98);}
+  .btn-accent{background:var(--accent); border-color:var(--accent); color:#fff;}
+</style>
+
+<section class="dash-wrap">
+  <div class="dash-container">
+    <div class="dash-grid">
+
+      <!-- Sidebar (rovnaký) -->
+      <aside class="side">
+        <div class="mebox">
+          <img src="{{ user_photo or url_for('static', filename='images/profile1.png') }}" class="avatar" alt="Profilová fotka">
+        <div class="hello">Ahoj, {{ user_name or 'Andrea' }}!</div>
+        </div>
+        <ul class="navlist">
+          <li><a class="navlink" href="{{ url_for('dashboard') }}">Rezervácie</a></li>
+          <li><a class="navlink active" href="{{ url_for('profil') }}">Profil</a></li>
+          <li><a class="navlink" href="{{ url_for('index') }}">Domovská stránka</a></li>
+        </ul>
+      </aside>
+
+      <!-- Pravý panel: minimalistický profil -->
+      <main class="card">
+        <div class="card-head d-flex align-items-center justify-content-between flex-wrap">
+          <div class="hello" style="font-size:1.1rem;">Profil</div>
+          <div class="d-flex gap-2 mt-2 mt-lg-0">
+            <a class="btn" href="{{ url_for('dashboard') }}">Späť na rezervácie</a>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="info-list mb-3">
+            <div class="row-item">
+              <div class="label">Meno</div>
+              <div class="value">{{ user_name or '-' }}</div>
+            </div>
+
+            <div class="row-item">
+              <div class="label">E-mail</div>
+              <div class="value">{{ user_email or '-' }}</div>
+            </div>
+
+            <div class="row-item">
+              <div class="label">Heslo</div>
+              <div class="value mono">{{ masked_password or '••••••••' }}</div>
+            </div>
+          </div>
+
+          <div class="note mb-3">
+            Ak chceš zmeniť svoje údaje (meno, e-mail alebo heslo), kontaktuj prosím administrátora.
+          </div>
+
+          <div class="d-flex gap-2">
+            <a class="btn btn-accent" href="mailto:info@palmapickleball.sk">Kontakt</a>
+            <a class="btn" href="{{ url_for('index') }}">Domov</a>
+          </div>
+        </div>
+      </main>
+
+    </div>
+  </div>
+</section>
+{% endblock %}

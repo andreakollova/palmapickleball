@@ -385,12 +385,26 @@ def login():
 
 @app.route("/dashboard")
 def dashboard():
-    """
-    Jednoduchý placeholder, aby link z registrácie nepadal na 404.
-    V šablóne dashboard.html si môžeš zobraziť email z query (?email=...).
-    """
-    email = request.args.get("email", "")
-    return render_template("dashboard.html", email=email)
+    sample_reservations = [
+        {"date": "2025-10-16", "time": "17:00 – 18:00", "court": "Kurt 1", "total": "30,00 €", "video_url": ""},
+        {"date": "2025-10-20", "time": "18:30 – 19:30", "court": "Kurt 2", "total": "30,00 €", "video_url": "https://example.com/video123.mp4"},
+    ]
+    return render_template(
+        "dashboard.html",
+        user_name="Andrea",
+        user_photo=url_for("static", filename="images/profile1.png"),
+        reservations=sample_reservations,
+    )
+
+@app.route("/profil")
+def profil():
+    return render_template(
+        "profil.html",
+        user_name="Andrea",
+        user_email="andrea@palmapickleball.sk",
+        user_photo=url_for("static", filename="images/profile1.png"),
+        masked_password="••••••••"
+    )
 
 @app.post("/api/release")
 def api_release():
