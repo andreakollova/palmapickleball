@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from collections import defaultdict
 from datetime import datetime, timedelta
 import os
 import re
 import stripe
 from dotenv import load_dotenv  # <-- add this at the top, with your other imports
+from urllib.parse import urlencode
 
 load_dotenv()  # loads variables from a .env file into os.environ
 
@@ -315,6 +316,37 @@ def create_payment_intent():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# === Registrácia po objednávke (POST) ===
+@app.post("/registracia-po-objednavke")
+def registracia_po_objednavke():
+    """
+    Vytvorí účet na základe e-mailu z objednávky a zvoleného hesla.
+    Po úspechu presmeruje späť na /rezervacia-uspesna?registered=1
+    a ponechá v URL aj info o rezervácii (date, time, court, total).
+    """
+    email      = (request.form.get("email") or "").strip().lower()
+    password   = request.form.get("password") or ""
+    next_path  = request.form.get("next_path") or url_for("rezervacia_uspesna")
+
+    # doplnkové info kvôli spätnému zobrazeniu
+    params = {
+        "registered": "1",
+        "date":  request.form.get("date")  or "",
+        "time":  request.form.get("time")  or "",
+        "court": request.form.get("court") or "",
+        "total": request.form.get("total") or "",
+        "email": email or "",
+    }
+
+    # TODO: tu si sprav reálnu registráciu používateľa v DB:
+    # - validácia (už existuje? dĺžka hesla? atď.)
+    # - hash hesla (napr. werkzeug.security.generate_password_hash)
+    # - uloženie do DB
+    # - (voliteľne) prihlásenie: login_user(user)
+    #
+    # Pre demo nič nerobíme a len redirectneme späť.
+
+    return redirect(f"{next_path}?{urlencode(params)}")
 
 @app.get("/payment-success")
 def payment_success():

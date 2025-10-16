@@ -1,70 +1,241 @@
 {% extends "base.html" %}
+{% block title %}Rezervácia bola úspešná{% endblock %}
 
 {% block content %}
-<section class="success-page d-flex flex-column align-items-center justify-content-center text-center py-5">
-  <div class="container" style="max-width: 560px;">
-    <div class="checkmark mb-4">
-      <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" fill="none" viewBox="0 0 24 24" stroke="#3a38d6" stroke-width="1.8">
-        <circle cx="12" cy="12" r="10" stroke="#3a38d6" stroke-width="1.8" fill="rgba(58,56,214,0.06)"/>
-        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12.5l3 3 5-6.5" />
-      </svg>
+
+<style>
+  :root{
+    --accent:#3a38d6;
+    --border:#e7e9ef;
+    --muted:#667085;
+    --shadow:0 6px 24px rgba(16, 24, 40, .06);
+  }
+
+  .success-wrap{
+    background: linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
+    padding: 32px 0 64px;
+  }
+  .success-wrap .container-narrow{
+    width:100%; max-width:960px; margin:0 auto; padding:0 24px;
+  }
+  @media (max-width:575.98px){
+    .success-wrap{padding:20px 0 40px;}
+    .success-wrap .container-narrow{padding:0 16px;}
+  }
+
+  .card-plain{
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:#fff;
+    box-shadow:var(--shadow);
+  }
+
+  .ok-icon{
+    width:78px;height:78px;border-radius:999px;
+    background:rgba(58,56,214,.1);
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 16px;
+  }
+  .ok-icon svg{width:38px;height:38px;stroke:var(--accent);}
+
+  .h-title{
+    font-weight:800; letter-spacing:.01em;
+    text-align:center;
+    font-size: clamp(1.4rem, 1.1rem + 1.2vw, 2rem);
+  }
+  .h-sub{color:var(--muted); text-align:center; margin:8px 0 22px;}
+
+  .details{
+    padding:18px 18px;
+    border:1px dashed var(--border);
+    border-radius:12px;
+    background:#f9fafc;
+  }
+  .dl{display:grid; grid-template-columns: 120px 1fr; gap:10px 16px; margin:0;}
+  .dl .dt{color:#667085;}
+  .dl .dd{color:#111827; font-weight:600;}
+
+  .actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px;
+       padding:.65rem 1rem; border-radius:10px; border:1px solid var(--border);
+       background:#fff; color:#111; text-decoration:none;}
+  .btn-dark{background:#111827; color:#fff; border-color:#111827;}
+  .btn-accent{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .btn:hover{filter:brightness(.98); text-decoration:none;}
+
+  .grid{display:grid; grid-template-columns: 1fr 1fr; gap:18px;}
+  @media (max-width: 991.98px){ .grid{grid-template-columns: 1fr;} }
+
+  .box-head{font-weight:700; font-size:1.05rem;}
+  .muted{color:var(--muted);}
+  .form .form-label{font-size:.95rem; font-weight:500; margin-bottom:.35rem;}
+  .form .form-control{padding:.6rem .75rem; border-color:#e5e7eb;}
+  .small-note{font-size:.9rem; color:var(--muted);}
+  .sep{height:1px;background:#eff1f5;margin:14px 0;}
+
+  .success-note{
+    border:1px solid #e6f4ea;
+    background:#f4fbf6;
+    color:#14532d;
+    border-radius:12px;
+    padding:12px 14px;
+  }
+
+  /* Benefits list (smaller text) */
+  .benefits{list-style:none;margin:10px 0 12px 0;padding:0;display:grid;gap:8px;}
+  .benefits li{
+    display:flex;gap:10px;align-items:flex-start;color:#1f2937;
+    font-size:.9rem; /* ← adjust size here */
+  }
+  .benefits .dot{
+    width:10px;height:10px;border-radius:999px;flex:0 0 10px;
+    margin-top:6px;background:var(--accent);box-shadow:0 0 0 3px rgba(58,56,214,.12);
+  }
+
+  /* Signup card + floating chip */
+  .signup-card{position:relative;}
+  .info-chip{
+    position:absolute;
+    top:14px; right:14px;
+    border:1px solid #e6e9ff;
+    background:#f6f7ff;
+    color:#1f2a6b;
+    border-radius:999px;
+    padding:8px 12px;
+    font-size:.85rem;  /* ← adjust the chip size here */
+    line-height:1;
+    box-shadow:0 2px 8px rgba(18, 44, 110, .05);
+    white-space:nowrap;
+  }
+  @media (max-width:575.98px){
+    .info-chip{
+      position:static;
+      display:inline-block;
+      margin-bottom:10px;
+      border-radius:12px;
+      white-space:normal;
+    }
+  }
+</style>
+
+<section class="success-wrap">
+  <div class="container-narrow">
+    <div class="grid">
+
+      <!-- LEFT: Booking summary -->
+      <div class="card-plain p-4 p-md-5">
+        <div class="ok-icon">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 7L9 18l-5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h1 class="h-title">Rezervácia bola úspešná 🎉</h1>
+        <p class="h-sub">Tvoja platba prebehla úspešne a kurt je rezervovaný. Tešíme sa na tvoju hru!</p>
+
+        <div class="details mb-3">
+          <div class="dl">
+            <div class="dt">Kurt</div>
+            <div class="dd">{{ court or "—" }}</div>
+
+            <div class="dt">Dátum</div>
+            <div class="dd">{{ date or "—" }}</div>
+
+            <div class="dt">Čas</div>
+            <div class="dd">{{ time or "—" }}</div>
+
+            <div class="dt">Suma</div>
+            <div class="dd">{{ total or "—" }}</div>
+          </div>
+        </div>
+
+        <div class="actions mt-2">
+          <a href="{{ url_for('index') }}" class="btn">Späť na hlavnú stránku</a>
+        </div>
+      </div>
+
+      <!-- RIGHT: Signup card -->
+      <div class="card-plain signup-card p-4 p-md-5">
+
+        {% if request.args.get('registered') %}
+          <div class="success-note mb-3">
+            Tvoj účet bol vytvorený. Môžeš sa prihlásiť a spravovať svoje rezervácie.
+          </div>
+          <div class="actions mt-2">
+            <a href="/dashboard" class="btn btn-accent">Prejsť do môjho profilu</a>
+            <a href="{{ url_for('index') }}" class="btn">Späť na hlavnú stránku</a>
+          </div>
+        {% else %}
+          <div class="mb-2">
+            <div class="box-head">Vytvoriť účet zadarmo (odporúčame)</div>
+          </div>
+
+          <ul class="benefits">
+            <li><span class="dot"></span><span><strong>Spravuj rezervácie</strong> – zmeny a prehľad na jednom mieste.</span></li>
+            <li><span class="dot"></span><span><strong>Výhody a zľavy</strong> – členstvo, akcie a priorita na booking.</span></li>
+            <li><span class="dot"></span><span><strong>Komunita Palma Pickleball</strong> – turnaje, sparingy, novinky.</span></li>
+          </ul>
+
+          <form method="post" action="{{ url_for('registracia_po_objednavke') }}" class="form" novalidate>
+            <!-- E-mail from booking (readonly) -->
+            <div class="mb-3">
+              <label class="form-label">E-mail</label>
+              <input class="form-control" type="email" name="email"
+                     value="{{ email or request.args.get('email','') }}"
+                     placeholder="tvoj@email.sk" required readonly>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Heslo</label>
+              <input class="form-control" type="password" name="password" id="pw1"
+                     placeholder="Zvoľ si heslo" minlength="6" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Potvrdiť heslo</label>
+              <input class="form-control" type="password" id="pw2"
+                     placeholder="Zopakuj heslo" minlength="6" required>
+              <div id="pwErr" class="small text-danger mt-1" style="display:none;">Heslá sa nezhodujú.</div>
+            </div>
+
+            <!-- pass booking info back; server handles redirect -->
+            <input type="hidden" name="next_path" value="{{ url_for('rezervacia_uspesna') }}">
+            <input type="hidden" name="date"  value="{{ date  or '' }}">
+            <input type="hidden" name="time"  value="{{ time  or '' }}">
+            <input type="hidden" name="court" value="{{ court or '' }}">
+            <input type="hidden" name="total" value="{{ total or '' }}">
+
+            <div class="sep"></div>
+
+            <button class="btn btn-accent w-100" type="submit">Vytvoriť účet</button>
+            <div class="small-note mt-2">
+              Po registrácii si v profile môžeš spravovať rezervácie, fakturačné údaje a históriu platieb.
+            </div>
+          </form>
+        {% endif %}
+      </div>
+
     </div>
-
-    <h2 class="fw-bold mb-3">Rezervácia bola úspešná 🎉</h2>
-    <p class="text-muted mb-4">
-      Tvoja platba prebehla úspešne a kurt je rezervovaný. Tešíme sa na tvoju hru!
-    </p>
-
-    {% if date and time and court %}
-    <div class="summary-card text-start mx-auto p-4 mb-4">
-      <div class="d-flex justify-content-between mb-2">
-        <span class="text-muted">Kurt</span>
-        <strong>{{ court }}</strong>
-      </div>
-      <div class="d-flex justify-content-between mb-2">
-        <span class="text-muted">Dátum</span>
-        <strong>{{ date }}</strong>
-      </div>
-      <div class="d-flex justify-content-between mb-2">
-        <span class="text-muted">Čas</span>
-        <strong>{{ time }}</strong>
-      </div>
-      {% if total %}
-      <div class="d-flex justify-content-between border-top pt-2">
-        <span class="text-muted">Suma</span>
-        <strong class="text-accent">{{ total }}</strong>
-      </div>
-      {% endif %}
-    </div>
-    {% endif %}
-
-    <a href="/" class="btn btn-accent px-4 py-2 rounded-pill d-inline-flex align-items-center gap-2">
-      <i class="fa-solid fa-arrow-left"></i> Späť na hlavnú stránku
-    </a>
   </div>
 </section>
 
-<style>
-.success-page {
-  min-height: 80vh;
-  background: linear-gradient(180deg,#ffffff 0%,#fafbff 100%);
-}
-.checkmark svg {
-  width: 86px; height: 86px;
-}
-.summary-card {
-  background:#fff;
-  border:1px solid #e9ecf3;
-  border-radius:14px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.04);
-  max-width:400px;
-}
-.text-accent { color:#3a38d6; }
-.btn-accent {
-  background:#3a38d6; color:#fff; border:none;
-}
-.btn-accent:hover {
-  background:#312fd1; color:#fff;
-}
-</style>
+<script>
+  // jednoduchá kontrola zhody hesiel
+  (function(){
+    const form = document.querySelector('form[action="{{ url_for("registracia_po_objednavke") }}"]');
+    if(!form) return;
+    const p1 = document.getElementById('pw1');
+    const p2 = document.getElementById('pw2');
+    const err = document.getElementById('pwErr');
+
+    function check(){
+      if(!p1.value || !p2.value) { err.style.display='none'; return true; }
+      if(p1.value !== p2.value){ err.style.display='block'; return false; }
+      err.style.display='none'; return true;
+    }
+    p1.addEventListener('input', check);
+    p2.addEventListener('input', check);
+    form.addEventListener('submit', (e)=>{ if(!check()){ e.preventDefault(); p2.focus(); } });
+  })();
+</script>
+
 {% endblock %}
