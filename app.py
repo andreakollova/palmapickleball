@@ -354,17 +354,19 @@ def payment_success():
 @app.route("/rezervacia-uspesna")
 def rezervacia_uspesna():
     # optional query parameters passed from checkout
-    date = request.args.get("date")
-    time = request.args.get("time")
+    date  = request.args.get("date")
+    time  = request.args.get("time")
     court = request.args.get("court")
     total = request.args.get("total")
+    email = request.args.get("email")  # <-- NEW
 
     return render_template(
         "rezervacia_uspesna.html",
         date=date,
         time=time,
         court=court,
-        total=total
+        total=total,
+        email=email   # <-- NEW
     )
 
 @app.post("/api/release")

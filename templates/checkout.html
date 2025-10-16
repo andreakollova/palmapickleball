@@ -485,13 +485,15 @@
     payBtn.textContent = "Spracúvam…";
 
     // Build success URL (so zobrazíš sumár)
+    const emailVal = (document.getElementById('c_email')?.value || "").trim();  // <-- ADDED
     const successBase = "{{ url_for('rezervacia_uspesna', _external=True) }}";
     const successUrl =
       successBase
       + "?date="  + encodeURIComponent({{ (date or "")    | tojson }})
       + "&time="  + encodeURIComponent({{ (time_str or "")| tojson }})
       + "&court=" + encodeURIComponent("Kurt " + {{ (court or "") | tojson }})
-      + "&total=" + encodeURIComponent(totalText());
+      + "&total=" + encodeURIComponent(totalText())
+      + "&email=" + encodeURIComponent(emailVal); // <-- ADDED
 
     try {
       // ✅ REQUIRED for Link / autofill / deferred flow
