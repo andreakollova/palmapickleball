@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin – Rezervácie</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    :root{
+      --accent:#3a38d6;
+      --ink:#111827;
+      --muted:#667085;
+      --border:#e7e9ef;
+      --shadow:0 6px 24px rgba(16,24,40,.06);
+      --ok:#16a34a;
+      --radius:12px;
+      --sidebar:250px;
+      --green-bg:#ecfdf3;  --green-bd:#b7f0c6;
+      --red-bg:#fff5f5;    --red-bd:#fecaca;
+    }
+    html,body{height:100%}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--ink);background:#fff}
+
+    /* Topbar */
+    .topbar{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--border);padding:10px 16px}
+    .tb{max-width:1200px;margin:0 auto;padding:0 12px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none}
+    .brand img{height:30px}
+    .title{font-weight:800;letter-spacing:.01em}
+
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:.48rem .9rem;border-radius:12px;border:1px solid var(--border);background:#fff;color:var(--ink);text-decoration:none;font-weight:500;line-height:1.15;cursor:pointer}
+    .btn:hover{filter:brightness(.98)}
+    .btn-accent{background:var(--accent);border-color:var(--accent);color:#fff}
+
+    /* Layout */
+    .wrap{max-width:1200px;margin:0 auto;padding:18px 12px;display:grid;gap:18px;grid-template-columns:var(--sidebar) 1fr}
+    @media (max-width:992px){.wrap{grid-template-columns:1fr}}
+
+    /* Sidebar */
+    .side{border:1px solid var(--border);border-radius:14px;background:#fff;box-shadow:var(--shadow);padding:14px;position:sticky;top:72px;height:fit-content}
+    .side h3{margin:0 0 8px 0;font-size:1.05rem;font-weight:750}
+    .nav{list-style:none;margin:0;padding:0}
+    .nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--ink);border:1px solid transparent}
+    .nav a:hover{background:#fafbff;border-color:#eef0f5}
+    .nav a.active{background:#f3f4ff;border-color:#dfe1ff;color:#2b2acb}
+    .ico{width:16px;display:inline-flex;align-items:center;justify-content:center}
+
+    /* Card */
+    .card{border:1px solid var(--border);border-radius:14px;background:#fff;box-shadow:var(--shadow)}
+    .card-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .card-title{font-weight:750}
+    .card-body{padding:12px 12px 16px}
+
+    /* Reservation row */
+    .res{
+      border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;display:grid;
+      grid-template-columns:40px 56px 1fr 420px;gap:10px;align-items:center
+    }
+    .res + .res{margin-top:10px}
+    @media (max-width:1180px){
+      .res{grid-template-columns:40px 56px 1fr}
+      .res .right{grid-column:1/-1}
+    }
+
+    .num{width:36px;height:36px;border-radius:999px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:750}
+    .ava{width:56px;height:56px;border-radius:999px;object-fit:cover;border:1px solid #eef0f5;background:#f6f7fb}
+
+    .main{min-width:0}
+    .name{font-weight:700;display:flex;align-items:center;gap:4px}
+    .status-dot{width:8px;height:8px;border-radius:999px;background:#cbd5e1;flex:0 0 8px}
+    .status-dot.up{background:#16a34a}
+    .sub{color:var(--muted);font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; margin:2px 0;} /* 2px vertical spacing */
+
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+    .chip{padding:4px 8px;border-radius:999px;font-size:.8rem;border:1px solid #dfe3ea;background:#f6f7fb;color:#475467}
+    .chip.ok{border-color:var(--green-bd);background:var(--green-bg);color:#14653b}
+    .chip.zero{border-color:#e6e8ee;background:#f4f5f7;color:#98a2b3}
+
+    /* Right column (kept aligned to the right edge overall) */
+    .right{
+      display:grid;grid-template-columns:1fr;gap:6px;
+      justify-items:end;text-align:right;width:420px
+    }
+
+    .dtline{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .badge-court{padding:5px 10px;border-radius:999px;font-weight:650;font-size:.92rem}
+    .badge-court.k1{background:#ecebff;border:1px solid #d9d6ff;color:#2b2acb}
+    .badge-court.k2{background:#eaf6ff;border:1px solid #cfe9ff;color:#0b6bcb}
+
+    .wtag{font-weight:600;font-size:.9rem;opacity:.85}
+    .dt{font-weight:500;font-size:.95rem}
+    .bar{color:#c0c4ce}
+    .time{font-weight:750;font-size:1.05rem}
+
+    /* Link box — now starts at the same left as the court/date/time line */
+    .linkbox{
+      width:310px;display:flex;gap:6px;align-items:center;
+      border:1px solid var(--border);border-radius:12px;padding:4px 6px;background:transparent;
+      align-self:start;justify-self:start;
+      margin-left:96px; /* ⬅️ posunie celý placeholder viac doľava */
+    }
+    .linkbox.needs-video{border-color:var(--red-bd);background:var(--red-bg)}
+    .linkbox.saved{border-color:var(--green-bd);background:var(--green-bg)}
+    .input{flex:1;min-width:140px;border:0;outline:0;font:inherit;font-size:.82rem;padding:3px 4px;background:transparent;text-align:left} /* left text */
+    .tick{width:34px;height:28px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;background:#fff;color:#16a34a;cursor:pointer}
+    .tick.saved{background:#16a34a;border-color:#16a34a;color:#fff}
+
+    .paid{font-size:.8rem;color:#98a2b3;display:flex;gap:8px;align-items:center;justify-content:flex-end}
+    .refund-link{color:#98a2b3;text-decoration:underline;cursor:pointer}
+    .invoice-link{color:#98a2b3;text-decoration:underline;display:inline-flex;align-items:center;gap:6px}
+
+    /* Toast */
+    .toast{position:fixed;right:16px;bottom:16px;background:#16a34a;color:#fff;padding:.7rem 1rem;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.12);opacity:0;transform:translateY(8px);pointer-events:none;transition:.18s ease}
+    .toast.show{opacity:1;transform:translateY(0)}
+  </style>
+</head>
+<body>
+
+  <!-- Top -->
+  <header class="topbar">
+    <div class="tb">
+      <a class="brand" href="#">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball">
+        <span class="title">Palma Admin</span>
+      </a>
+      <div class="tb-actions">
+        <a class="btn" href="{{ url_for('index') }}">Domov</a>
+        <a class="btn" href="/adminpanel">Odhlásiť</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <!-- Sidebar -->
+    <aside class="side">
+      <h3>Navigácia</h3>
+      <ul class="nav">
+        <li><a class="active" href="#"><i class="fa-regular fa-calendar ico"></i> Rezervácie</a></li>
+        <li><a href="#"><i class="fa-regular fa-user ico"></i> Zoznam zákazníkov</a></li>
+        <li><a href="#"><i class="fa-regular fa-circle-play ico"></i> Pridaj sa do hry</a></li>
+        <li><a href="#"><i class="fa-regular fa-handshake ico"></i> Partneri</a></li>
+        <li><a href="#"><i class="fa-solid fa-chart-line ico"></i> Štatistiky</a></li>
+      </ul>
+    </aside>
+
+    <!-- Content -->
+    <main class="card">
+      <div class="card-head">
+        <div class="card-title">Rezervácie</div>
+        <div class="d-flex gap-2">
+          <a class="btn" href="{{ url_for('index') }}">Domov</a>
+        </div>
+      </div>
+
+      <div class="card-body">
+
+        {% set items = reservations if reservations is defined and reservations|length > 0 else [
+          {"created_at":"2025-10-12 16:45","date":"2025-10-19","time":"15:00 – 16:00","court":"Kurt 1","name":"Lucia Hrivíková","email":"lucia@example.com","phone":"+421 903 444 555","addons":{"rackets":1,"camera":0},"total":"23,00 €","avatar": url_for('static', filename='images/profile1.png')},
+          {"created_at":"2025-10-11 09:02","date":"2025-10-18","time":"18:30 – 19:30","court":"Kurt 2","name":"Peter Novák","email":"peter@example.com","phone":"+421 911 222 333","addons":{"rackets":0,"camera":0},"total":"20,00 €","avatar": url_for('static', filename='images/profile1.png')},
+          {"created_at":"2025-10-10 12:14","date":"2025-10-17","time":"17:00 – 18:00","court":"Kurt 1","name":"Andrea Kollová","email":"andrea@palmapickleball.sk","phone":"+421 900 000 000","addons":{"rackets":2,"camera":1},"total":"30,00 €","avatar": url_for('static', filename='images/profile1.png')}
+        ] %}
+        {% set ordered = items|sort(attribute='created_at', reverse=True) %}
+        {% set total = ordered|length %}
+
+        {% for r in ordered %}
+          {% set display_num = total - loop.index0 %}
+          {% set rc = r.addons.rackets if r.addons and 'rackets' in r.addons else 0 %}
+          {% set cam = r.addons.camera  if r.addons and 'camera'  in r.addons else 0 %}
+          {% set court_class = 'k1' if (r.court|string).strip().endswith('1') else 'k2' %}
+
+          <article class="res">
+            <div class="num">{{ display_num }}</div>
+            <img class="ava" src="{{ r.avatar or url_for('static', filename='images/profile1.png') }}" alt="avatar">
+
+            <div class="main">
+              <div class="name">
+                <span class="status-dot" data-date="{{ r.date }}" data-time="{{ r.time }}"></span>
+                {{ r.name }}
+              </div>
+              <div class="sub">{{ r.email }} • {{ r.phone }}</div>
+              <div class="chips">
+                <span class="chip {{ rc>0 and 'ok' or 'zero' }}">Rakety × {{ rc }}</span>
+                <span class="chip {{ cam>0 and 'ok' or 'zero' }}">Kamera × {{ cam }}</span>
+                <span class="chip">Suma: {{ r.total }}</span>
+              </div>
+            </div>
+
+            <div class="right">
+              <div class="dtline">
+                <span class="badge-court {{ court_class }}">{{ r.court }}</span>
+                <span class="wtag" data-iso="{{ r.date }}"></span>
+                <span class="dt">
+                  {% set d = r.date|string %}
+                  {% if d|length == 10 and '-' in d %}
+                    {% set y = d[0:4] %}{% set m = d[5:7] %}{% set dd = d[8:10] %}
+                    {{ dd }}.&nbsp;{{ m }}.&nbsp;{{ y }}
+                  {% else %}{{ r.date }}{% endif %}
+                </span>
+                <span class="bar">|</span>
+                <span class="time">{{ r.time }}</span>
+              </div>
+
+              <div class="linkbox {{ cam>0 and 'needs-video' or '' }}">
+                <input class="input" type="url" placeholder="Video link (Drive, Dropbox…)" />
+                <button class="tick" type="button" aria-label="Uložiť">
+                  <i class="fa-solid fa-check"></i>
+                </button>
+              </div>
+
+              <div class="paid">
+                {% set c = r.created_at|string %}
+                {% if c|length >= 10 and '-' in c %}
+                  {% set y = c[0:4] %}{% set m = c[5:7] %}{% set dd = c[8:10] %}
+                  Zaplatené: {{ dd }}.{{ m }}.{{ y }}
+                {% else %}
+                  Zaplatené: {{ r.created_at or '-' }}
+                {% endif %}
+                <span class="bar">|</span>
+                <a class="refund-link" href="javascript:void(0)">Refundovať</a>
+                <span class="bar">|</span>
+                <a class="invoice-link" href="javascript:void(0)">
+                  <i class="fa-regular fa-file-lines"></i> Faktúra
+                </a>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </main>
+  </div>
+
+  <div id="toast" class="toast">Uložené</div>
+
+  <script>
+    // Weekday tag before date: (PO/UT/ST/ŠT/PI/SO/NE)
+    (function(){
+      const MAP = ['NE','PO','UT','ST','ŠT','PI','SO'];
+      document.querySelectorAll('.wtag[data-iso]').forEach(span=>{
+        const iso = span.getAttribute('data-iso');
+        const d = new Date(iso+'T00:00:00');
+        const tag = MAP[d.getDay()] || '';
+        span.textContent = tag ? `(${tag})` : '';
+      });
+    })();
+
+    // Status dot (green upcoming / grey past)
+    (function(){
+      function parseEnd(dateStr, timeRange){
+        const m = String(timeRange||'').match(/(\d{2}):(\d{2})\s*–\s*(\d{2}):(\d{2})/);
+        if(!m) return null;
+        const yy = Number(dateStr.slice(0,4));
+        const mm = Number(dateStr.slice(5,7))-1;
+        const dd = Number(dateStr.slice(8,10));
+        const eh = Number(m[3]), em = Number(m[4]);
+        return new Date(yy, mm, dd, eh, em, 0, 0);
+      }
+      const now = new Date();
+      document.querySelectorAll('.status-dot[data-date]').forEach(dot=>{
+        const d = dot.getAttribute('data-date');
+        const t = dot.getAttribute('data-time');
+        const end = parseEnd(d, t);
+        if(end && end > now) dot.classList.add('up');
+      });
+    })();
+
+    const toast = document.getElementById('toast');
+    function showToast(msg){
+      toast.textContent = msg || 'Uložené';
+      toast.classList.add('show');
+      clearTimeout(window.__tid);
+      window.__tid = setTimeout(()=>toast.classList.remove('show'), 1600);
+    }
+
+    // Tick behavior: mark as saved (green box + green tick)
+    document.addEventListener('click', (e)=>{
+      if(e.target.closest('.tick')){
+        const tick  = e.target.closest('.tick');
+        const box   = tick.closest('.linkbox');
+        const input = box.querySelector('.input');
+        if(!input.value.trim()){ input.focus(); return; }
+        tick.classList.add('saved');
+        box.classList.add('saved');
+        showToast('Uložené');
+      }
+      if(e.target && (e.target.classList.contains('refund-link') || e.target.closest('.refund-link'))){
+        showToast('Refund vykonaný (demo)');
+      }
+      if(e.target && (e.target.classList.contains('invoice-link') || e.target.closest('.invoice-link'))){
+        showToast('Faktúra nie je ešte pripojená (demo)');
+      }
+    });
+  </script>
+</body>
+</html>

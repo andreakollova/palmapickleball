@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Dashboard</title>
+  <style>
+    :root{
+      --ink:#0f1220;
+      --muted:#7b8096;
+      --bg:#0a0c14;                 /* dark app bg */
+      --card:#111425;               /* dark cards */
+      --card-2:#0e1120;             /* darker sections */
+      --border:#1e2340;
+      --accent:#8a7dff;             /* distinct from site purple */
+      --accent-2:#19e3b1;           /* mint accent for contrast */
+      --chip:#1a2040;
+      --danger:#f3697a;
+      --ok:#19e3b1;
+      --shadow:0 12px 28px rgba(5,8,20,.4);
+      --radius:16px;
+    }
+
+    /* ===== App layout ===== */
+    html,body{height:100%}
+    body{
+      margin:0; color:#e8ebff; background:
+        radial-gradient(1200px 800px at 80% -10%, rgba(138,125,255,.12), transparent 60%),
+        radial-gradient(900px 600px at -10% 110%, rgba(25,227,177,.10), transparent 60%),
+        var(--bg);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+      letter-spacing:.01em;
+    }
+    .app{
+      display:grid; grid-template-columns: 260px 1fr; gap:0; min-height:100dvh;
+    }
+    @media (max-width: 980px){
+      .app{grid-template-columns: 1fr;}
+      .sidebar{position:fixed; inset:0 40% 0 0; transform:translateX(-101%); transition:transform .25s ease;}
+      .sidebar.open{transform:translateX(0);}
+      .topbar .burger{display:inline-flex;}
+    }
+
+    /* ===== Sidebar ===== */
+    .sidebar{
+      background:linear-gradient(180deg, #0e1224 0%, #0b0f1d 100%);
+      border-right:1px solid var(--border);
+      padding:20px 16px;
+      box-shadow: inset -1px 0 0 rgba(255,255,255,.03);
+      z-index:40;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; padding:10px 8px; margin-bottom:8px;
+      font-weight:800; letter-spacing:.02em; color:#fff; text-decoration:none;
+    }
+    .brand .logo{
+      width:34px; height:34px; border-radius:10px;
+      background: radial-gradient(100% 100% at 100% 0, var(--accent) 0, #5b52ff 60%, #2c2b55 100%);
+      display:grid; place-items:center; color:#0b0f1d; font-weight:900;
+    }
+    .side-note{
+      color:var(--muted); font-size:.9rem; padding:0 8px 10px; border-bottom:1px dashed var(--border); margin-bottom:12px;
+    }
+    .nav{list-style:none; padding:0; margin:0;}
+    .nav a{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px; border-radius:12px; color:#dfe3ff; text-decoration:none;
+      border:1px solid transparent;
+    }
+    .nav a:hover{background:#0f1430; border-color:#171c3a;}
+    .nav a.active{background:#12183a; border-color:#1c2250; color:#fff; box-shadow: inset 0 0 0 1px rgba(138,125,255,.15);}
+    .nav svg{width:18px; height:18px; opacity:.9;}
+
+    /* ===== Topbar ===== */
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:14px;
+      padding:16px 20px; position:sticky; top:0; z-index:30;
+      background:linear-gradient(180deg, rgba(13,17,34,.78), rgba(13,17,34,.62));
+      backdrop-filter: blur(8px) saturate(140%);
+      border-bottom:1px solid rgba(255,255,255,.05);
+    }
+    .topbar .left{display:flex; align-items:center; gap:10px;}
+    .burger{display:none; appearance:none; border:1px solid #222948; background:#121632; color:#cfd5ff;
+      padding:8px 10px; border-radius:10px; cursor:pointer;}
+    .title{font-weight:800; letter-spacing:.02em;}
+    .search{
+      display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:12px;
+      background:#0e132b; border:1px solid #1a2145; color:#cfd5ff; min-width:280px;
+    }
+    .search input{all:unset; flex:1; font-size:.95rem; color:#e8ebff;}
+    .badge{
+      padding:6px 10px; border-radius:999px; font-size:.78rem; background:#0f1533; border:1px solid #1a2145; color:#cfd5ff;
+    }
+
+    /* ===== Main content ===== */
+    .main{padding:18px 20px 32px;}
+    .grid{display:grid; grid-template-columns: 1fr; gap:18px; max-width:1200px; margin:0 auto;}
+    .card{
+      background:linear-gradient(180deg, #111426 0%, #0f1324 100%);
+      border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+    }
+    .card-head{padding:16px 16px; border-bottom:1px solid #191f3f; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;}
+    .card-body{padding:16px;}
+
+    /* pills & controls */
+    .pills{display:flex; gap:8px; flex-wrap:wrap;}
+    .pill{
+      display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#12183a; border:1px solid #1b2250; color:#dfe3ff; font-size:.85rem;
+    }
+    .kpi{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    .kpi .chip{background:#0e132b; border:1px solid #1a2145; padding:8px 10px; border-radius:12px; color:#cfd5ff; font-size:.9rem;}
+
+    /* table */
+    .table-wrap{overflow:auto;}
+    table{width:100%; border-collapse:separate; border-spacing:0;}
+    thead th{
+      text-align:left; padding:10px 12px; color:#9fa7d8; font-weight:600; font-size:.9rem; white-space:nowrap;
+      border-bottom:1px solid #1a214a;
+    }
+    tbody td{
+      padding:12px; border-bottom:1px solid #141a36; color:#e8ebff; font-weight:500; vertical-align:middle;
+    }
+    tbody tr:last-child td{border-bottom:none;}
+    .status{
+      display:inline-flex; align-items:center; gap:8px; padding:5px 10px; border-radius:999px; font-size:.8rem;
+      background:#0d1b2a; border:1px solid #1d2b3f; color:#a9f0dc;
+    }
+    .status.pending{ background:#2c1a1e; border-color:#43222a; color:#ffb8c1;}
+    .status.paid{ background:#082b26; border-color:#0f4a41; color:#8af1d9;}
+    .status.hold{ background:#2d2a0f; border-color:#4b4316; color:#ffe9a7;}
+
+    /* buttons */
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:.48rem .9rem; border-radius:12px; border:1px solid #212852; background:#111737; color:#e8ebff;
+      text-decoration:none; font-weight:500; line-height:1.15;
+    }
+    .btn:hover{filter:brightness(1.05);}
+    .btn-accent{background:linear-gradient(180deg, #8a7dff, #5b52ff); border-color:#433bf1; color:#fff;}
+    .btn-ghost{background:#0f1430; border-color:#1a2145; color:#cfd5ff;}
+    .btn-danger{background:#3a1b22; border-color:#612a38; color:#ffc4cc;}
+    .btn-ok{background:#083b32; border-color:#0e574d; color:#bff8ea;}
+
+    /* section switch */
+    .section{display:none;}
+    .section.active{display:block;}
+
+    /* footer hint */
+    .foot-note{color:#9aa3bf; font-size:.86rem; padding:6px 0 0;}
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#" onclick="return false;">
+      <span class="logo">A</span>
+      <span>Admin</span>
+    </a>
+    <div class="side-note">Správa rezervácií a obsahu</div>
+
+    <ul class="nav" id="nav">
+      <li><a href="#" data-target="sec-bookings" class="active">
+        <!-- calendar icon -->
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#8a7dff" stroke-width="1.6"/><path d="M8 2v4M16 2v4M3 10h18" stroke="#8a7dff" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Rezervácie
+      </a></li>
+
+      <li><a href="#" data-target="sec-customers">
+        <!-- users icon -->
+        <svg viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#8a7dff" stroke-width="1.6" stroke-linecap="round"/><circle cx="10" cy="7" r="4" stroke="#8a7dff" stroke-width="1.6"/><path d="M20 8a3 3 0 1 1-6 0" stroke="#8a7dff" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Zoznam zákazníkov
+      </a></li>
+
+      <li><a href="#" data-target="sec-join">
+        <!-- bolt/plus icon -->
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2v8M8 6h8" stroke="#8a7dff" stroke-width="1.6" stroke-linecap="round"/><path d="M6 13h8l-2 9 1-6H6l2-7" stroke="#8a7dff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Pridaj sa do hry
+      </a></li>
+
+      <li><a href="#" data-target="sec-partners">
+        <!-- handshake icon -->
+        <svg viewBox="0 0 24 24" fill="none"><path d="M8 11l4-3 4 3 3-2 2 3-5 3-4-3-4 3-5-3 2-3 3 2z" stroke="#8a7dff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Partneri
+      </a></li>
+    </ul>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div>
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="left">
+        <button class="burger" id="burger">☰</button>
+        <div class="title">Admin Dashboard</div>
+        <span class="badge">v1.0</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9fa7d8"/><path d="M20 20l-3.5-3.5" stroke="#9fa7d8" stroke-linecap="round"/></svg>
+          <input type="text" id="q" placeholder="Hľadať…">
+        </div>
+        <a class="btn btn-ghost" href="/">Domov</a>
+        <a class="btn btn-danger" href="#" onclick="alert('Odhlásiť (frontend demo)');return false;">Odhlásiť</a>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="main">
+      <div class="grid">
+
+        <!-- ===== Rezervácie ===== -->
+        <section class="card section active" id="sec-bookings">
+          <div class="card-head">
+            <div class="kpi">
+              <div class="chip">Dnes: <strong style="margin-left:6px;">8 rezervácií</strong></div>
+              <div class="chip">Tento týždeň: <strong style="margin-left:6px;">42</strong></div>
+              <div class="chip">Obsadenosť: <strong style="margin-left:6px;">74%</strong></div>
+            </div>
+            <div class="pills">
+              <a href="#" class="pill" onclick="filterDate('today');return false;">Dnes</a>
+              <a href="#" class="pill" onclick="filterDate('week');return false;">Týždeň</a>
+              <a href="#" class="pill" onclick="filterDate('all');return false;">Všetko</a>
+              <a href="#" class="btn btn-accent" onclick="alert('Nová rezervácia (demo)');return false;">+ Pridať</a>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table id="tbl-bookings">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Dátum</th>
+                    <th>Čas</th>
+                    <th>Kurt</th>
+                    <th>Zákazník</th>
+                    <th>Email</th>
+                    <th>Suma</th>
+                    <th>Stav</th>
+                    <th>Akcie</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Example rows; replace with server data -->
+                  <tr>
+                    <td>#7812</td>
+                    <td>17. 10. 2025</td>
+                    <td>18:00 – 19:00</td>
+                    <td>Kurt 2</td>
+                    <td>Andrea K.</td>
+                    <td>andrea@palmapickleball.sk</td>
+                    <td>20,00 €</td>
+                    <td><span class="status paid">Zaplatené</span></td>
+                    <td>
+                      <a class="btn btn-ghost" href="#" onclick="alert('Detail (demo)');return false;">Detail</a>
+                      <a class="btn btn-danger" href="#" onclick="confirm('Zrušiť rezerváciu?')">Zrušiť</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>#7813</td>
+                    <td>17. 10. 2025</td>
+                    <td>19:00 – 19:30</td>
+                    <td>Kurt 1</td>
+                    <td>Ján P.</td>
+                    <td>jan@example.com</td>
+                    <td>10,00 €</td>
+                    <td><span class="status hold">Hold</span></td>
+                    <td>
+                      <a class="btn btn-ghost" href="#" onclick="alert('Detail (demo)');return false;">Detail</a>
+                      <a class="btn btn-ok" href="#" onclick="alert('Odoslať platobný link (demo)');return false;">Platiť</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>#7814</td>
+                    <td>18. 10. 2025</td>
+                    <td>16:00 – 17:00</td>
+                    <td>Kurt 3</td>
+                    <td>Zuzana R.</td>
+                    <td>zuzana@example.com</td>
+                    <td>20,00 €</td>
+                    <td><span class="status pending">Čaká</span></td>
+                    <td>
+                      <a class="btn btn-ghost" href="#" onclick="alert('Detail (demo)');return false;">Detail</a>
+                      <a class="btn btn-danger" href="#" onclick="confirm('Zrušiť rezerváciu?')">Zrušiť</a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="foot-note">Tip: klikni na „Detail“ pre rýchly prehľad a úpravu.</div>
+          </div>
+        </section>
+
+        <!-- ===== Zoznam zákazníkov ===== -->
+        <section class="card section" id="sec-customers">
+          <div class="card-head">
+            <div class="title" style="font-weight:800;">Zákazníci</div>
+            <div class="pills">
+              <a href="#" class="btn btn-accent" onclick="alert('Pridať zákazníka (demo)');return false;">+ Pridať zákazníka</a>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table id="tbl-customers">
+                <thead>
+                  <tr>
+                    <th>Meno</th>
+                    <th>E-mail</th>
+                    <th>Počet rezervácií</th>
+                    <th>Naposledy</th>
+                    <th>Akcie</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Andrea</td>
+                    <td>andrea@palmapickleball.sk</td>
+                    <td>7</td>
+                    <td>16. 10. 2025</td>
+                    <td>
+                      <a class="btn btn-ghost" href="#" onclick="alert('Detail zákazníka (demo)');return false;">Detail</a>
+                      <a class="btn btn-danger" href="#" onclick="confirm('Vymazať zákazníka?')">Vymazať</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Ján</td>
+                    <td>jan@example.com</td>
+                    <td>3</td>
+                    <td>12. 10. 2025</td>
+                    <td>
+                      <a class="btn btn-ghost" href="#" onclick="alert('Detail zákazníka (demo)');return false;">Detail</a>
+                      <a class="btn btn-danger" href="#" onclick="confirm('Vymazať zákazníka?')">Vymazať</a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="foot-note">Export CSV a filtre si vieš doplniť neskôr do pravého horného rohu.</div>
+          </div>
+        </section>
+
+        <!-- ===== Pridaj sa do hry (waitlist / eventy) ===== -->
+        <section class="card section" id="sec-join">
+          <div class="card-head">
+            <div class="title" style="font-weight:800;">Pridaj sa do hry</div>
+            <div class="pills">
+              <a href="#" class="btn btn-accent" onclick="alert('Nové podujatie (demo)');return false;">+ Nové podujatie</a>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table id="tbl-join">
+                <thead>
+                  <tr>
+                    <th>Názov akcie</th>
+                    <th>Dátum</th>
+                    <th>Kapacita</th>
+                    <th>Registrovaní</th>
+                    <th>Stav</th>
+                    <th>Akcie</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Community Doubles Night</td>
+                    <td>25. 10. 2025</td>
+                    <td>24</td>
+                    <td>18</td>
+                    <td><span class="status">Otvorené</span></td>
+                    <td>
+                      <a class="btn btn-ghost" href="#" onclick="alert('Upraviť (demo)');return false;">Upraviť</a>
+                      <a class="btn btn-danger" href="#" onclick="confirm('Zrušiť akciu?')">Zrušiť</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Nováčikovský turnaj</td>
+                    <td>02. 11. 2025</td>
+                    <td>16</td>
+                    <td>12</td>
+                    <td><span class="status hold">Čoskoro</span></td>
+                    <td>
+                      <a class="btn btn-ghost" href="#" onclick="alert('Upraviť (demo)');return false;">Upraviť</a>
+                      <a class="btn btn-ok" href="#" onclick="alert('Zdieľať link (demo)');return false;">Zdieľať</a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="foot-note">Sem môžeš pridať aj čakaciu listinu a e-mailové pozvánky.</div>
+          </div>
+        </section>
+
+        <!-- ===== Partneri ===== -->
+        <section class="card section" id="sec-partners">
+          <div class="card-head">
+            <div class="title" style="font-weight:800;">Partneri</div>
+            <div class="pills">
+              <a href="#" class="btn btn-accent" onclick="alert('Pridať partnera (demo)');return false;">+ Pridať partnera</a>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table id="tbl-partners">
+                <thead>
+                  <tr>
+                    <th>Meno / Značka</th>
+                    <th>Kontakt</th>
+                    <th>Typ spolupráce</th>
+                    <th>Platnosť</th>
+                    <th>Akcie</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>SportGear s.r.o.</td>
+                    <td>partner@sportgear.eu</td>
+                    <td>Vybavenie / zľavy</td>
+                    <td>1. 1. 2025 – 31. 12. 2025</td>
+                    <td>
+                      <a class="btn btn-ghost" href="#" onclick="alert('Detail (demo)');return false;">Detail</a>
+                      <a class="btn btn-danger" href="#" onclick="confirm('Ukončiť spoluprácu?')">Ukončiť</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>HydroBoost</td>
+                    <td>hello@hydroboost.com</td>
+                    <td>Sponzoring akcií</td>
+                    <td>1. 3. 2025 – 1. 3. 2026</td>
+                    <td>
+                      <a class="btn btn-ghost" href="#" onclick="alert('Detail (demo)');return false;">Detail</a>
+                      <a class="btn btn-ok" href="#" onclick="alert('Predĺžiť (demo)');return false;">Predĺžiť</a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="foot-note">Môžeš pridať aj logá partnerov a automatické zmluvné pripomienky.</div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  // Mobile sidebar toggle
+  const burger = document.getElementById('burger');
+  const sidebar = document.getElementById('sidebar');
+  if (burger && sidebar) {
+    burger.addEventListener('click', ()=> sidebar.classList.toggle('open'));
+  }
+
+  // Section switching
+  const nav = document.getElementById('nav');
+  const sections = document.querySelectorAll('.section');
+  if (nav) {
+    nav.addEventListener('click', (e)=>{
+      const a = e.target.closest('a[data-target]');
+      if(!a) return;
+      e.preventDefault();
+
+      // active link
+      nav.querySelectorAll('a').forEach(el=>el.classList.remove('active'));
+      a.classList.add('active');
+
+      // show section
+      const id = a.getAttribute('data-target');
+      sections.forEach(s=>s.classList.toggle('active', s.id === id));
+
+      // close sidebar on mobile
+      sidebar.classList.remove('open');
+    });
+  }
+
+  // Simple date filters demo
+  function filterDate(scope){
+    alert('Filter: ' + scope + ' (frontend demo)');
+  }
+</script>
+</body>
+</html>

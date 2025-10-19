@@ -316,6 +316,19 @@ def create_payment_intent():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# app.py (add somewhere with your other routes)
+from flask import render_template
+
+@app.route("/adminpanel", methods=["GET"])
+def adminpanel():
+    # frontend-only placeholder
+    return render_template("adminpanel_login.html")
+
+@app.route("/admin/dashboard")
+def admin_dashboard():
+    return render_template("admin_dashboard.html")
+
+
 # === Registrácia po objednávke (POST) ===
 @app.post("/registracia-po-objednavke")
 def registracia_po_objednavke():
