@@ -1,0 +1,245 @@
+<!-- ===== Admin header minimalist modern style (final, fixed right align) ===== -->
+<style>
+  .admin-header {
+    --accent: #111; /* accent čierny len pre header */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 4px 0;
+  }
+
+  /* Title */
+  .admin-header .title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  /* Left cluster (title + filters) */
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .filters { display: flex; gap: 6px; }
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 10px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .filter-btn:hover { background: #f7f8fa; }
+    .filter-btn.active {
+      background: #f3f4f6;       /* svetlé pozadie */
+      color: #111;               /* čierny text */
+      border-color: #d1d5db;     /* jemná sivá hranica */
+    }
+
+  /* Right cluster (search + sort) — celý blok doprava */
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 1;                 /* vyplní zvyšok riadku */
+    justify-content: flex-end; /* ⬅️ zarovnanie doprava */
+  }
+
+  /* Search */
+  .search-wrapper { position: relative; }
+  .search-wrapper input {
+    width: 0;
+    opacity: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    transition: width 0.2s ease, opacity 0.2s ease;
+  }
+  .search-wrapper.open input { width: 250px; opacity: 1; }
+  .search-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 10px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .search-btn:hover { color: var(--ink); background: #f7f8fa; }
+
+  /* Sort (drž sa úplne vpravo spolu so searchom) */
+    .sort {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 130px;        /* ⬅️ zvýš hodnotu, napr. 40px, aby sa blok posunul doprava */
+      justify-content: flex-end;
+    }
+  .sort-label {
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .sort-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s ease;
+  }
+    .sort-btn.active {
+      background: #f3f4f6;       /* svetlé pozadie */
+      color: #111;               /* čierny text */
+      border-color: #d1d5db;     /* jemná sivá hranica */
+    }
+  .sort-btn:hover { background: #f7f8fa; color: var(--ink); }
+</style>
+
+<div class="admin-header">
+  <div class="header-left">
+    <div class="title">Rezervácie</div>
+    <div class="filters" id="filters">
+      <button class="filter-btn active" data-filter="all">Všetky</button>
+      <button class="filter-btn" data-filter="upcoming">Nadchádzajúce</button>
+      <button class="filter-btn" data-filter="today" id="todayBtn">Dnes</button>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="search-wrapper" id="searchBox">
+      <button class="search-btn" id="searchToggle" title="Hľadať">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+      <input type="text" id="searchInput" placeholder="" />
+    </div>
+
+    <div class="sort" id="sorters">
+      <span class="sort-label">Zoradiť podľa:</span>
+      <button class="sort-btn active" data-sort="slot" title="Podľa času slotu">
+        <i class="fa-regular fa-bell"></i>
+      </button>
+      <button class="sort-btn" data-sort="created" title="Podľa dátumu rezervácie">
+        <i class="fa-regular fa-clock"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+
+  // Dnes label
+  (function(){
+    const map = ['NE','PO','UT','ST','ŠT','PI','SO'];
+    const d = new Date();
+    const tag = map[d.getDay()];
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    const t = $('#todayBtn');
+    if(t) t.textContent = `Dnes (${tag}, ${dd}.${mm}.${yyyy})`;
+  })();
+
+  // Search toggle
+  const searchBox = $('#searchBox');
+  const searchToggle = $('#searchToggle');
+  const searchInput = $('#searchInput');
+  searchToggle.addEventListener('click', ()=>{
+    searchBox.classList.toggle('open');
+    if(searchBox.classList.contains('open')) searchInput.focus();
+    applyFilters();
+  });
+  searchInput.addEventListener('input', applyFilters);
+
+  // Filters
+  let activeFilter = 'all';
+  $('#filters').addEventListener('click', e=>{
+    const btn = e.target.closest('.filter-btn');
+    if(!btn) return;
+    activeFilter = btn.dataset.filter;
+    $$('.filter-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    applyFilters();
+  });
+
+  // Sort
+  let sortMode = 'slot';
+  $('#sorters').addEventListener('click', e=>{
+    const b = e.target.closest('.sort-btn');
+    if(!b) return;
+    sortMode = b.dataset.sort;
+    $$('.sort-btn').forEach(s=>s.classList.toggle('active', s===b));
+    applyFilters(true);
+  });
+
+  function parseSlot(a){
+    const dt = a.querySelector('.dt')?.textContent || '';
+    const tm = a.querySelector('.time')?.textContent || '';
+    const m = tm.match(/(\d{2}):(\d{2})/);
+    const parts = dt.replace(/\s/g,'').split('.').filter(Boolean);
+    const [dd, mm, yyyy] = parts.length>=3 ? parts : [null,null,null];
+    if(!m||!dd||!mm||!yyyy) return new Date(0);
+    return new Date(+yyyy, +mm-1, +dd, +m[1], +m[2]);
+  }
+  function parseCreated(a){
+    const txt = a.querySelector('.paid')?.textContent || '';
+    const m = txt.match(/Zaplatené:\s*(\d{2})\.(\d{2})\.(\d{4})/);
+    if(!m) return new Date(0);
+    return new Date(+m[3], +m[2]-1, +m[1]);
+  }
+  function isUpcoming(a){
+    const now = new Date();
+    const start = parseSlot(a);
+    return start > now;
+  }
+  function isToday(a){
+    const start = parseSlot(a);
+    const now = new Date();
+    return start.getFullYear()===now.getFullYear() &&
+           start.getMonth()===now.getMonth() &&
+           start.getDate()===now.getDate();
+  }
+
+  function applyFilters(doSort=false){
+    const term = searchBox.classList.contains('open') ? (searchInput.value||'').toLowerCase() : '';
+    const list = $$('.card-body .res');
+    list.forEach(a=>{
+      let show = true;
+      if(activeFilter==='upcoming') show = isUpcoming(a);
+      if(activeFilter==='today') show = isToday(a);
+      if(show && term){
+        const blob = (a.textContent||'').toLowerCase();
+        show = blob.includes(term);
+      }
+      a.style.display = show ? '' : 'none';
+    });
+
+    if(doSort){
+      const visible = list.filter(a=>a.style.display!=='none');
+      const container = document.querySelector('.card-body');
+      visible.sort((a,b)=>{
+        return sortMode==='created'
+          ? parseCreated(b)-parseCreated(a)
+          : parseSlot(b)-parseSlot(a);
+      });
+      visible.forEach(a=>container.appendChild(a));
+    }
+  }
+
+  applyFilters();
+})();
+</script>

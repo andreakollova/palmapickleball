@@ -65,7 +65,16 @@
     }
 
     .num{width:36px;height:36px;border-radius:999px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:750}
+
     .ava{width:56px;height:56px;border-radius:999px;object-fit:cover;border:1px solid #eef0f5;background:#f6f7fb}
+    /* === NEW: wrapper + badge overlay (keeps the same 56x56 slot) === */
+    .ava-wrap{position:relative;width:56px;height:56px}
+    .badge-mark{
+      position:absolute;left:-6px;bottom:-6px;
+      width:28px;height:28px;object-fit:contain;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,.15));
+      pointer-events:none;
+    }
 
     .main{min-width:0}
     .name{font-weight:700;display:flex;align-items:center;gap:4px}
@@ -75,7 +84,7 @@
 
     .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
     .chip{padding:4px 8px;border-radius:999px;font-size:.8rem;border:1px solid #dfe3ea;background:#f6f7fb;color:#475467}
-    .chip.ok{border-color:var(--green-bd);background:var(--green-bg);color:#14653b}
+    .chip.ok{border-color:var(--green-bd);background:#ecfdf3;color:#14653b}
     .chip.zero{border-color:#e6e8ee;background:#f4f5f7;color:#98a2b3}
 
     /* Right column (kept aligned to the right edge overall) */
@@ -101,8 +110,8 @@
       align-self:start;justify-self:start;
       margin-left:96px; /* ⬅️ posunie celý placeholder viac doľava */
     }
-    .linkbox.needs-video{border-color:var(--red-bd);background:var(--red-bg)}
-    .linkbox.saved{border-color:var(--green-bd);background:var(--green-bg)}
+    .linkbox.needs-video{border-color:var(--red-bd);background:#fff5f5}
+    .linkbox.saved{border-color:var(--green-bd);background:#ecfdf3}
     .input{flex:1;min-width:140px;border:0;outline:0;font:inherit;font-size:.82rem;padding:3px 4px;background:transparent;text-align:left} /* left text */
     .tick{width:34px;height:28px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;background:#fff;color:#16a34a;cursor:pointer}
     .tick.saved{background:#16a34a;border-color:#16a34a;color:#fff}
@@ -148,18 +157,18 @@
     <!-- Content -->
     <main class="card">
       <div class="card-head">
-        <div class="card-title">Rezervácie</div>
-        <div class="d-flex gap-2">
-          <a class="btn" href="{{ url_for('index') }}">Domov</a>
-        </div>
+        {% include "partials/admin_header.html" %}
       </div>
 
       <div class="card-body">
 
         {% set items = reservations if reservations is defined and reservations|length > 0 else [
-          {"created_at":"2025-10-12 16:45","date":"2025-10-19","time":"15:00 – 16:00","court":"Kurt 1","name":"Lucia Hrivíková","email":"lucia@example.com","phone":"+421 903 444 555","addons":{"rackets":1,"camera":0},"total":"23,00 €","avatar": url_for('static', filename='images/profile1.png')},
-          {"created_at":"2025-10-11 09:02","date":"2025-10-18","time":"18:30 – 19:30","court":"Kurt 2","name":"Peter Novák","email":"peter@example.com","phone":"+421 911 222 333","addons":{"rackets":0,"camera":0},"total":"20,00 €","avatar": url_for('static', filename='images/profile1.png')},
-          {"created_at":"2025-10-10 12:14","date":"2025-10-17","time":"17:00 – 18:00","court":"Kurt 1","name":"Andrea Kollová","email":"andrea@palmapickleball.sk","phone":"+421 900 000 000","addons":{"rackets":2,"camera":1},"total":"30,00 €","avatar": url_for('static', filename='images/profile1.png')}
+          {"created_at":"2025-10-19 18:05","date":"2025-10-25","time":"18:00 – 19:00","court":"Kurt 1","name":"Lucia Hrivíková","email":"lucia@example.com","phone":"+421 903 444 555","addons":{"rackets":1,"camera":0},"total":"23,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"clen"},
+          {"created_at":"2025-10-18 14:22","date":"2025-10-24","time":"17:00 – 18:00","court":"Kurt 2","name":"Peter Novák","email":"peter@example.com","phone":"+421 911 222 333","addons":{"rackets":0,"camera":1},"total":"28,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"trener"},
+          {"created_at":"2025-10-17 10:40","date":"2025-10-23","time":"19:30 – 20:30","court":"Kurt 1","name":"Andrea Kollová","email":"andrea@palmapickleball.sk","phone":"+421 900 000 000","addons":{"rackets":2,"camera":1},"total":"30,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"partner"},
+          {"created_at":"2025-10-16 08:11","date":"2025-10-22","time":"07:30 – 08:30","court":"Kurt 2","name":"Marek Hruška","email":"marek@example.com","phone":"+421 902 123 456","addons":{"rackets":0,"camera":0},"total":"20,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"repre"},
+          {"created_at":"2025-10-15 12:31","date":"2025-10-20","time":"16:00 – 17:00","court":"Kurt 1","name":"Eva Kováčová","email":"eva@example.com","phone":"+421 944 777 222","addons":{"rackets":1,"camera":0},"total":"23,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"clen"},
+          {"created_at":"2025-10-14 09:03","date":"2025-10-17","time":"17:00 – 18:00","court":"Kurt 2","name":"Roman Bielik","email":"roman@example.com","phone":"+421 948 222 111","addons":{"rackets":0,"camera":0},"total":"20,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"partner"}
         ] %}
         {% set ordered = items|sort(attribute='created_at', reverse=True) %}
         {% set total = ordered|length %}
@@ -172,7 +181,14 @@
 
           <article class="res">
             <div class="num">{{ display_num }}</div>
-            <img class="ava" src="{{ r.avatar or url_for('static', filename='images/profile1.png') }}" alt="avatar">
+
+            <!-- avatar with badge -->
+            <div class="ava-wrap">
+              <img class="ava" src="{{ r.avatar or url_for('static', filename='images/profile1.png') }}" alt="avatar">
+              {% if r.status in ['clen','trener','partner','repre'] %}
+                <img class="badge-mark" src="{{ url_for('static', filename='images/badges/' ~ r.status ~ '.png') }}" alt="{{ r.status }}">
+              {% endif %}
+            </div>
 
             <div class="main">
               <div class="name">
