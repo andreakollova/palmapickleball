@@ -64,7 +64,7 @@
       .res .right{grid-column:1/-1}
     }
 
-    .num{width:36px;height:36px;border-radius:999px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:750}
+    .num{width:36px;height:36px;border-radius:999px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:350;font-size:0.95rem}
 
     .ava{width:56px;height:56px;border-radius:999px;object-fit:cover;border:1px solid #eef0f5;background:#f6f7fb}
     /* === NEW: wrapper + badge overlay (keeps the same 56x56 slot) === */
@@ -123,6 +123,20 @@
     /* Toast */
     .toast{position:fixed;right:16px;bottom:16px;background:#16a34a;color:#fff;padding:.7rem 1rem;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.12);opacity:0;transform:translateY(8px);pointer-events:none;transition:.18s ease}
     .toast.show{opacity:1;transform:translateY(0)}
+
+    /* ===== Pagination (new) ===== */
+    .pagination{
+      display:flex;justify-content:center;align-items:center;gap:6px;margin-top:16px;flex-wrap:wrap;
+    }
+    .page-btn{
+      border:1px solid var(--border);background:#fff;color:var(--ink);
+      padding:6px 10px;border-radius:10px;cursor:pointer;min-width:36px;text-align:center;
+    }
+    .page-btn[disabled]{opacity:.45;cursor:not-allowed}
+    .page-btn.active{background:#111;color:#fff;border-color:#111}
+
+    /* NEW: hide by pagination (not by filters) */
+    .pg-hidden{visibility:hidden;position:absolute;pointer-events:none;height:0;margin-top:0}
   </style>
 </head>
 <body>
@@ -160,19 +174,41 @@
         {% include "partials/admin_header.html" %}
       </div>
 
-      <div class="card-body">
+      <div class="card-body" id="resContainer">
 
         {% set items = reservations if reservations is defined and reservations|length > 0 else [
           {"created_at":"2025-10-19 18:05","date":"2025-10-25","time":"18:00 – 19:00","court":"Kurt 1","name":"Lucia Hrivíková","email":"lucia@example.com","phone":"+421 903 444 555","addons":{"rackets":1,"camera":0},"total":"23,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"clen"},
+
+          {"created_at":"2025-10-19 10:10","date":"2025-10-19","time":"15:00 – 16:00","court":"Kurt 2","name":"Juraj Kováč","email":"juraj@example.com","phone":"+421 905 123 321","addons":{"rackets":0,"camera":1},"total":"28,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"trener"},
           {"created_at":"2025-10-18 14:22","date":"2025-10-24","time":"17:00 – 18:00","court":"Kurt 2","name":"Peter Novák","email":"peter@example.com","phone":"+421 911 222 333","addons":{"rackets":0,"camera":1},"total":"28,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"trener"},
+          {"created_at":"2025-10-18 09:55","date":"2025-10-19","time":"19:30 – 20:30","court":"Kurt 1","name":"Zuzana Mrázová","email":"zuzka@example.com","phone":"+421 904 888 123","addons":{"rackets":1,"camera":0},"total":"23,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"clen"},
           {"created_at":"2025-10-17 10:40","date":"2025-10-23","time":"19:30 – 20:30","court":"Kurt 1","name":"Andrea Kollová","email":"andrea@palmapickleball.sk","phone":"+421 900 000 000","addons":{"rackets":2,"camera":1},"total":"30,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"partner"},
+          {"created_at":"2025-10-17 08:10","date":"2025-10-21","time":"06:30 – 07:30","court":"Kurt 2","name":"Viktor Bača","email":"viktor@example.com","phone":"+421 903 111 555","addons":{"rackets":0,"camera":0},"total":"20,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":null},
+
+          {"created_at":"2025-10-16 18:11","date":"2025-10-28","time":"20:00 – 21:00","court":"Kurt 2","name":"Michaela Hrúzová","email":"miska@example.com","phone":"+421 902 987 456","addons":{"rackets":1,"camera":0},"total":"23,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"repre"},
           {"created_at":"2025-10-16 08:11","date":"2025-10-22","time":"07:30 – 08:30","court":"Kurt 2","name":"Marek Hruška","email":"marek@example.com","phone":"+421 902 123 456","addons":{"rackets":0,"camera":0},"total":"20,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"repre"},
           {"created_at":"2025-10-15 12:31","date":"2025-10-20","time":"16:00 – 17:00","court":"Kurt 1","name":"Eva Kováčová","email":"eva@example.com","phone":"+421 944 777 222","addons":{"rackets":1,"camera":0},"total":"23,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"clen"},
-          {"created_at":"2025-10-14 09:03","date":"2025-10-17","time":"17:00 – 18:00","court":"Kurt 2","name":"Roman Bielik","email":"roman@example.com","phone":"+421 948 222 111","addons":{"rackets":0,"camera":0},"total":"20,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"partner"}
+          {"created_at":"2025-10-15 09:00","date":"2025-10-26","time":"09:00 – 10:00","court":"Kurt 1","name":"Filip Oravec","email":"filip@example.com","phone":"+421 948 000 123","addons":{"rackets":0,"camera":0},"total":"20,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"partner"},
+
+          {"created_at":"2025-10-14 19:03","date":"2025-10-27","time":"18:00 – 19:00","court":"Kurt 2","name":"Karin Liptáková","email":"karin@example.com","phone":"+421 903 555 000","addons":{"rackets":2,"camera":1},"total":"32,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"trener"},
+          {"created_at":"2025-10-14 09:03","date":"2025-10-17","time":"17:00 – 18:00","court":"Kurt 2","name":"Roman Bielik","email":"roman@example.com","phone":"+421 948 222 111","addons":{"rackets":0,"camera":0},"total":"20,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"partner"},
+          {"created_at":"2025-10-13 21:15","date":"2025-10-30","time":"21:00 – 22:00","court":"Kurt 1","name":"Samuel Duda","email":"samuel@example.com","phone":"+421 905 333 789","addons":{"rackets":1,"camera":0},"total":"23,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":null},
+          {"created_at":"2025-10-13 10:31","date":"2025-10-19","time":"08:00 – 09:00","court":"Kurt 1","name":"Kristína Holá","email":"kika@example.com","phone":"+421 903 741 852","addons":{"rackets":0,"camera":0},"total":"20,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"clen"},
+          {"created_at":"2025-10-13 08:40","date":"2025-10-31","time":"16:30 – 17:30","court":"Kurt 2","name":"Jana Kmeťová","email":"jana@example.com","phone":"+421 917 654 123","addons":{"rackets":1,"camera":1},"total":"33,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"repre"},
+
+          {"created_at":"2025-10-12 16:45","date":"2025-10-25","time":"06:00 – 07:00","court":"Kurt 1","name":"Tomáš Švec","email":"tomas@example.com","phone":"+421 905 456 654","addons":{"rackets":0,"camera":0},"total":"20,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":null},
+          {"created_at":"2025-10-12 12:05","date":"2025-10-29","time":"12:00 – 13:00","court":"Kurt 2","name":"Adam Kubiš","email":"adam@example.com","phone":"+421 915 321 789","addons":{"rackets":2,"camera":0},"total":"26,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"partner"},
+          {"created_at":"2025-10-12 08:22","date":"2025-10-19","time":"12:00 – 13:00","court":"Kurt 1","name":"Monika Tóthová","email":"monika@example.com","phone":"+421 907 111 222","addons":{"rackets":1,"camera":0},"total":"23,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"trener"},
+          {"created_at":"2025-10-11 18:33","date":"2025-11-01","time":"18:00 – 19:00","court":"Kurt 2","name":"Patrik Maier","email":"patrik@example.com","phone":"+421 944 333 222","addons":{"rackets":0,"camera":1},"total":"28,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"clen"},
+          {"created_at":"2025-10-11 09:02","date":"2025-10-18","time":"18:30 – 19:30","court":"Kurt 2","name":"Peter Novák st.","email":"peter.st@example.com","phone":"+421 911 000 333","addons":{"rackets":0,"camera":0},"total":"20,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":null},
+
+          {"created_at":"2025-10-10 20:20","date":"2025-10-20","time":"20:00 – 21:00","court":"Kurt 1","name":"Natália Uhríková","email":"natalia@example.com","phone":"+421 903 258 369","addons":{"rackets":1,"camera":1},"total":"33,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"repre"},
+          {"created_at":"2025-10-10 12:14","date":"2025-10-17","time":"17:00 – 18:00","court":"Kurt 1","name":"Andrea Kollová (2)","email":"andrea2@palmapickleball.sk","phone":"+421 900 000 001","addons":{"rackets":2,"camera":1},"total":"30,00 €","avatar": url_for('static', filename='images/profile1.png'),"status":"partner"}
         ] %}
         {% set ordered = items|sort(attribute='created_at', reverse=True) %}
         {% set total = ordered|length %}
 
+        <div id="resList">
         {% for r in ordered %}
           {% set display_num = total - loop.index0 %}
           {% set rc = r.addons.rackets if r.addons and 'rackets' in r.addons else 0 %}
@@ -243,6 +279,11 @@
             </div>
           </article>
         {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pager"></div>
+
       </div>
     </main>
   </div>
@@ -307,6 +348,70 @@
         showToast('Faktúra nie je ešte pripojená (demo)');
       }
     });
+
+    /* ========= Pagination (10 per page) – FIXED ========= */
+    (function(){
+      const perPage = 10;
+      const listWrap = document.getElementById('resList');
+      const pager = document.getElementById('pager');
+
+      // rows hidden by filters use display:none; rows hidden by pagination use .pg-hidden
+      function filteredItems(){
+        return Array.from(listWrap.querySelectorAll('.res'))
+          .filter(el => getComputedStyle(el).display !== 'none'); // ignore items hidden by filters
+      }
+
+      function renderPager(total, page, pages){
+        pager.innerHTML = '';
+        const mkBtn = (label, disabled, cb, active=false)=>{
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'page-btn' + (active ? ' active' : '');
+          b.textContent = label;
+          if(disabled){ b.disabled = true; }
+          b.addEventListener('click', cb);
+          pager.appendChild(b);
+        };
+        mkBtn('‹', page===1, ()=>go(page-1));
+        for(let i=1;i<=pages;i++){
+          mkBtn(String(i), false, ()=>go(i), i===page);
+        }
+        mkBtn('›', page===pages, ()=>go(page+1));
+      }
+
+      let curPage = 1;
+
+      function go(page){
+        const items = filteredItems();
+        const pages = Math.max(1, Math.ceil(items.length/perPage));
+        curPage = Math.min(Math.max(1, page), pages);
+
+        items.forEach((el,i)=>{
+          const show = i >= (curPage-1)*perPage && i < curPage*perPage;
+          el.classList.toggle('pg-hidden', !show);
+        });
+
+        renderPager(items.length, curPage, pages);
+      }
+
+      function repaginate(keepPage=true){
+        // remove previous pagination hiding and re-apply on target page
+        listWrap.querySelectorAll('.res.pg-hidden').forEach(el=>el.classList.remove('pg-hidden'));
+        const target = keepPage ? curPage : 1;
+        go(target);
+      }
+
+      // initial
+      repaginate(false);
+
+      // When filters/sorts/search alter visibility, recompute but keep current page
+      const obs = new MutationObserver(()=>{ setTimeout(()=>repaginate(true), 0); });
+      obs.observe(listWrap, {childList:true, subtree:true, attributes:true, attributeFilter:['style','class']});
+
+      // In case filter script uses input events
+      document.addEventListener('input', ()=>setTimeout(()=>repaginate(true), 120));
+    })();
+
   </script>
 </body>
 </html>
