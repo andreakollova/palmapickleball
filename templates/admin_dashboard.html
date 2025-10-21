@@ -142,7 +142,7 @@
   </style>
 </head>
 <body>
-
+  {% set active = 'reservations' %}
   <!-- Top -->
   <header class="topbar">
     <div class="tb">
@@ -159,16 +159,7 @@
 
   <div class="wrap">
     <!-- Sidebar -->
-    <aside class="side">
-      <h3>Navigácia</h3>
-      <ul class="nav">
-        <li><a class="active" href="#"><i class="fa-regular fa-calendar ico"></i> Rezervácie</a></li>
-        <li><a href="#"><i class="fa-regular fa-user ico"></i> Zoznam zákazníkov</a></li>
-        <li><a href="#"><i class="fa-regular fa-circle-play ico"></i> Pridaj sa do hry</a></li>
-        <li><a href="#"><i class="fa-regular fa-handshake ico"></i> Partneri</a></li>
-        <li><a href="#"><i class="fa-solid fa-chart-line ico"></i> Štatistiky</a></li>
-      </ul>
-    </aside>
+    {% include "partials/admin_sidebar.html" %}
 
     <!-- Content -->
     <main class="card">
