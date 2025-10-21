@@ -39,11 +39,11 @@
     transition: all 0.15s ease;
   }
   .filter-btn:hover { background: #f7f8fa; }
-    .filter-btn.active {
-      background: #f3f4f6;       /* svetlé pozadie */
-      color: #111;               /* čierny text */
-      border-color: #d1d5db;     /* jemná sivá hranica */
-    }
+  .filter-btn.active {
+    background: #f3f4f6;       /* svetlé pozadie */
+    color: #111;               /* čierny text */
+    border-color: #d1d5db;     /* jemná sivá hranica */
+  }
 
   /* Right cluster (search + sort) — celý blok doprava */
   .header-right {
@@ -51,8 +51,8 @@
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
-    flex: 1;                 /* vyplní zvyšok riadku */
-    justify-content: flex-end; /* ⬅️ zarovnanie doprava */
+    flex: 1;                    /* vyplní zvyšok riadku */
+    justify-content: flex-end;  /* ⬅️ zarovnanie doprava */
   }
 
   /* Search */
@@ -79,13 +79,13 @@
   .search-btn:hover { color: var(--ink); background: #f7f8fa; }
 
   /* Sort (drž sa úplne vpravo spolu so searchom) */
-    .sort {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-left: 130px;        /* ⬅️ zvýš hodnotu, napr. 40px, aby sa blok posunul doprava */
-      justify-content: flex-end;
-    }
+  .sort {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 130px;         /* posun doprava, ponechané */
+    justify-content: flex-end;
+  }
   .sort-label {
     font-size: 0.9rem;
     color: var(--muted);
@@ -100,11 +100,11 @@
     color: var(--muted);
     transition: all 0.15s ease;
   }
-    .sort-btn.active {
-      background: #f3f4f6;       /* svetlé pozadie */
-      color: #111;               /* čierny text */
-      border-color: #d1d5db;     /* jemná sivá hranica */
-    }
+  .sort-btn.active {
+    background: #f3f4f6;
+    color: #111;
+    border-color: #d1d5db;
+  }
   .sort-btn:hover { background: #f7f8fa; color: var(--ink); }
 </style>
 
@@ -140,7 +140,7 @@
 
 <script>
 (function(){
-  const $ = s => document.querySelector(s);
+  const $  = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
 
   // Dnes label
@@ -156,13 +156,13 @@
   })();
 
   // Search toggle
-  const searchBox = $('#searchBox');
+  const searchBox    = $('#searchBox');
   const searchToggle = $('#searchToggle');
-  const searchInput = $('#searchInput');
+  const searchInput  = $('#searchInput');
   searchToggle.addEventListener('click', ()=>{
     searchBox.classList.toggle('open');
     if(searchBox.classList.contains('open')) searchInput.focus();
-    applyFilters();
+    applyFilters(); // nech sa prefiltruje hneď po otvorení/zatvorení
   });
   searchInput.addEventListener('input', applyFilters);
 
@@ -186,28 +186,66 @@
     applyFilters(true);
   });
 
-  function parseSlot(a){
-    const dt = a.querySelector('.dt')?.textContent || '';
-    const tm = a.querySelector('.time')?.textContent || '';
-    const m = tm.match(/(\d{2}):(\d{2})/);
-    const parts = dt.replace(/\s/g,'').split('.').filter(Boolean);
-    const [dd, mm, yyyy] = parts.length>=3 ? parts : [null,null,null];
-    if(!m||!dd||!mm||!yyyy) return new Date(0);
-    return new Date(+yyyy, +mm-1, +dd, +m[1], +m[2]);
+  // ===== Robustné čítanie dátumu/času slotu =====
+  function parseSlot(article){
+    // 1) Skús prečítať spoľahlivé zdroje: .status-dot[data-date][data-time] alebo .wtag[data-iso]
+    const dot = article.querySelector('.status-dot');
+    const wtag = article.querySelector('.wtag');
+
+    const isoDate = (dot && dot.getAttribute('data-date'))
+                 || (wtag && wtag.getAttribute('data-iso'))
+                 || null; // očakávame YYYY-MM-DD
+
+    // 2) Čas – prvý výskyt HH:MM z .time (ignorujeme koniec rozsahu)
+    const timeText = (article.querySelector('.time')?.textContent || '').replace(/\u00a0/g,' ').trim();
+    const m = timeText.match(/(\d{1,2}):(\d{2})/); // tolerantné (01-23):(00-59)
+    const hh = m ? parseInt(m[1],10) : 0;
+    const mi = m ? parseInt(m[2],10) : 0;
+
+    if(isoDate && /^\d{4}-\d{2}-\d{2}$/.test(isoDate)){
+      const [Y,M,D] = isoDate.split('-').map(Number);
+      return new Date(Y, M-1, D, hh, mi, 0, 0);
+    }
+
+    // 3) Fallback: pokús sa rozparsovať z textovej .dt (napr. "25. 10. 2025")
+    const dtRaw = (article.querySelector('.dt')?.textContent || '')
+      .replace(/\u00a0/g, ' ')
+      .trim();
+    // najprv skúsiť YYYY-MM-DD…
+    if(/^\d{4}-\d{2}-\d{2}$/.test(dtRaw)){
+      const [Y,M,D] = dtRaw.split('-').map(Number);
+      return new Date(Y, M-1, D, hh, mi, 0, 0);
+    }
+    // …inak DD.MM.YYYY (s prípadnými medzerami)
+    const parts = dtRaw.replace(/\s/g,'').split('.').filter(Boolean);
+    if(parts.length >= 3){
+      const D = parseInt(parts[0],10);
+      const M = parseInt(parts[1],10);
+      const Y = parseInt(parts[2],10);
+      if(!Number.isNaN(D) && !Number.isNaN(M) && !Number.isNaN(Y)){
+        return new Date(Y, M-1, D, hh, mi, 0, 0);
+      }
+    }
+    // ak sa nič nepodarí, vráť "najnižší" dátum
+    return new Date(0);
   }
-  function parseCreated(a){
-    const txt = a.querySelector('.paid')?.textContent || '';
+
+  function parseCreated(article){
+    // čítame z textu "Zaplatené: dd.mm.yyyy"
+    const txt = article.querySelector('.paid')?.textContent || '';
     const m = txt.match(/Zaplatené:\s*(\d{2})\.(\d{2})\.(\d{4})/);
     if(!m) return new Date(0);
-    return new Date(+m[3], +m[2]-1, +m[1]);
+    return new Date(+m[3], +m[2]-1, +m[1], 0, 0, 0, 0);
   }
-  function isUpcoming(a){
+
+  function isUpcoming(article){
     const now = new Date();
-    const start = parseSlot(a);
+    const start = parseSlot(article);
     return start > now;
   }
-  function isToday(a){
-    const start = parseSlot(a);
+
+  function isToday(article){
+    const start = parseSlot(article);
     const now = new Date();
     return start.getFullYear()===now.getFullYear() &&
            start.getMonth()===now.getMonth() &&
@@ -217,10 +255,12 @@
   function applyFilters(doSort=false){
     const term = searchBox.classList.contains('open') ? (searchInput.value||'').toLowerCase() : '';
     const list = $$('.card-body .res');
+
+    // 1) Filtruj podľa tlačidiel + vyhľadávania
     list.forEach(a=>{
       let show = true;
       if(activeFilter==='upcoming') show = isUpcoming(a);
-      if(activeFilter==='today') show = isToday(a);
+      if(activeFilter==='today')    show = isToday(a);
       if(show && term){
         const blob = (a.textContent||'').toLowerCase();
         show = blob.includes(term);
@@ -228,18 +268,21 @@
       a.style.display = show ? '' : 'none';
     });
 
+    // 2) Zoradenie len viditeľných (ak sa klikol sort)
     if(doSort){
       const visible = list.filter(a=>a.style.display!=='none');
-      const container = document.querySelector('.card-body');
+      // appenduj vždy do reálneho zoznamu, nie do .card-body
+      const container = document.getElementById('resList') || document.querySelector('.card-body');
       visible.sort((a,b)=>{
         return sortMode==='created'
-          ? parseCreated(b)-parseCreated(a)
-          : parseSlot(b)-parseSlot(a);
+          ? (parseCreated(b) - parseCreated(a))
+          : (parseSlot(b)    - parseSlot(a));
       });
       visible.forEach(a=>container.appendChild(a));
     }
   }
 
+  // prvé vykonanie
   applyFilters();
 })();
 </script>

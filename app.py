@@ -316,8 +316,6 @@ def create_payment_intent():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# app.py (add somewhere with your other routes)
-from flask import render_template
 
 @app.route("/adminpanel", methods=["GET"])
 def adminpanel():
@@ -326,7 +324,8 @@ def adminpanel():
 
 @app.route("/admin/dashboard")
 def admin_dashboard():
-    return render_template("admin_dashboard.html")
+    # odovzdá šablóne rovnaké dáta ako JSON feed nižšie
+    return render_template("admin_dashboard.html", reservations=sample_reservations())
 
 
 # === Registrácia po objednávke (POST) ===
@@ -364,6 +363,7 @@ def registracia_po_objednavke():
 @app.get("/payment-success")
 def payment_success():
     return render_template("payment_success.html")
+
 @app.route("/rezervacia-uspesna")
 def rezervacia_uspesna():
     # optional query parameters passed from checkout
@@ -381,6 +381,7 @@ def rezervacia_uspesna():
         total=total,
         email=email   # <-- NEW
     )
+
 @app.route("/registracia", methods=["GET","POST"])
 def registracia():
     return render_template("registracia.html")
@@ -450,9 +451,111 @@ def api_release():
             released.append(s)
 
     return jsonify({"ok": True, "released": released})
+
+
+# ===== ADDED: jednotný zdroj dát pre admin dashboard (rovnaké polia ako v šablóne) =====
+def sample_reservations():
+    return [
+        {"created_at": "2025-10-19 18:05", "date": "2025-10-25", "time": "18:00 – 19:00", "court": "Kurt 1",
+         "name": "Lucia Hrivíková", "email": "lucia@example.com", "phone": "+421 903 444 555",
+         "addons": {"rackets": 1, "camera": 0}, "total": "23,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "clen"},
+        {"created_at": "2025-10-19 10:10", "date": "2025-10-19", "time": "15:00 – 16:00", "court": "Kurt 2",
+         "name": "Juraj Kováč", "email": "juraj@example.com", "phone": "+421 905 123 321",
+         "addons": {"rackets": 0, "camera": 1}, "total": "28,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "trener"},
+        {"created_at": "2025-10-18 14:22", "date": "2025-10-24", "time": "17:00 – 18:00", "court": "Kurt 2",
+         "name": "Peter Novák", "email": "peter@example.com", "phone": "+421 911 222 333",
+         "addons": {"rackets": 0, "camera": 1}, "total": "28,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "trener"},
+        {"created_at": "2025-10-18 09:55", "date": "2025-10-19", "time": "19:30 – 20:30", "court": "Kurt 1",
+         "name": "Zuzana Mrázová", "email": "zuzka@example.com", "phone": "+421 904 888 123",
+         "addons": {"rackets": 1, "camera": 0}, "total": "23,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "clen"},
+        {"created_at": "2025-10-17 10:40", "date": "2025-10-23", "time": "19:30 – 20:30", "court": "Kurt 1",
+         "name": "Andrea Kollová", "email": "andrea@palmapickleball.sk", "phone": "+421 900 000 000",
+         "addons": {"rackets": 2, "camera": 1}, "total": "30,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "partner"},
+        {"created_at": "2025-10-17 08:10", "date": "2025-10-21", "time": "06:30 – 07:30", "court": "Kurt 2",
+         "name": "Viktor Bača", "email": "viktor@example.com", "phone": "+421 903 111 555",
+         "addons": {"rackets": 0, "camera": 0}, "total": "20,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": None},
+        {"created_at": "2025-10-16 18:11", "date": "2025-10-28", "time": "20:00 – 21:00", "court": "Kurt 2",
+         "name": "Michaela Hrúzová", "email": "miska@example.com", "phone": "+421 902 987 456",
+         "addons": {"rackets": 1, "camera": 0}, "total": "23,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "repre"},
+        {"created_at": "2025-10-16 08:11", "date": "2025-10-22", "time": "07:30 – 08:30", "court": "Kurt 2",
+         "name": "Marek Hruška", "email": "marek@example.com", "phone": "+421 902 123 456",
+         "addons": {"rackets": 0, "camera": 0}, "total": "20,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "repre"},
+        {"created_at": "2025-10-15 12:31", "date": "2025-10-20", "time": "16:00 – 17:00", "court": "Kurt 1",
+         "name": "Eva Kováčová", "email": "eva@example.com", "phone": "+421 944 777 222",
+         "addons": {"rackets": 1, "camera": 0}, "total": "23,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "clen"},
+        {"created_at": "2025-10-15 09:00", "date": "2025-10-26", "time": "09:00 – 10:00", "court": "Kurt 1",
+         "name": "Filip Oravec", "email": "filip@example.com", "phone": "+421 948 000 123",
+         "addons": {"rackets": 0, "camera": 0}, "total": "20,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "partner"},
+        {"created_at": "2025-10-14 19:03", "date": "2025-10-27", "time": "18:00 – 19:00", "court": "Kurt 2",
+         "name": "Karin Liptáková", "email": "karin@example.com", "phone": "+421 903 555 000",
+         "addons": {"rackets": 2, "camera": 1}, "total": "32,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "trener"},
+        {"created_at": "2025-10-14 09:03", "date": "2025-10-17", "time": "17:00 – 18:00", "court": "Kurt 2",
+         "name": "Roman Bielik", "email": "roman@example.com", "phone": "+421 948 222 111",
+         "addons": {"rackets": 0, "camera": 0}, "total": "20,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "partner"},
+        {"created_at": "2025-10-13 21:15", "date": "2025-10-30", "time": "21:00 – 22:00", "court": "Kurt 1",
+         "name": "Samuel Duda", "email": "samuel@example.com", "phone": "+421 905 333 789",
+         "addons": {"rackets": 1, "camera": 0}, "total": "23,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": None},
+        {"created_at": "2025-10-13 10:31", "date": "2025-10-19", "time": "08:00 – 09:00", "court": "Kurt 1",
+         "name": "Kristína Holá", "email": "kika@example.com", "phone": "+421 903 741 852",
+         "addons": {"rackets": 0, "camera": 0}, "total": "20,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "clen"},
+        {"created_at": "2025-10-13 08:40", "date": "2025-10-31", "time": "16:30 – 17:30", "court": "Kurt 2",
+         "name": "Jana Kmeťová", "email": "jana@example.com", "phone": "+421 917 654 123",
+         "addons": {"rackets": 1, "camera": 1}, "total": "33,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "repre"},
+        {"created_at": "2025-10-12 16:45", "date": "2025-10-25", "time": "06:00 – 07:00", "court": "Kurt 1",
+         "name": "Tomáš Švec", "email": "tomas@example.com", "phone": "+421 905 456 654",
+         "addons": {"rackets": 0, "camera": 0}, "total": "20,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": None},
+        {"created_at": "2025-10-12 12:05", "date": "2025-10-29", "time": "12:00 – 13:00", "court": "Kurt 2",
+         "name": "Adam Kubiš", "email": "adam@example.com", "phone": "+421 915 321 789",
+         "addons": {"rackets": 2, "camera": 0}, "total": "26,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "partner"},
+        {"created_at": "2025-10-12 08:22", "date": "2025-10-19", "time": "12:00 – 13:00", "court": "Kurt 1",
+         "name": "Monika Tóthová", "email": "monika@example.com", "phone": "+421 907 111 222",
+         "addons": {"rackets": 1, "camera": 0}, "total": "23,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "trener"},
+        {"created_at": "2025-10-11 18:33", "date": "2025-11-01", "time": "18:00 – 19:00", "court": "Kurt 2",
+         "name": "Patrik Maier", "email": "patrik@example.com", "phone": "+421 944 333 222",
+         "addons": {"rackets": 0, "camera": 1}, "total": "28,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "clen"},
+        {"created_at": "2025-10-11 09:02", "date": "2025-10-18", "time": "18:30 – 19:30", "court": "Kurt 2",
+         "name": "Peter Novák st.", "email": "peter.st@example.com", "phone": "+421 911 000 333",
+         "addons": {"rackets": 0, "camera": 0}, "total": "20,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": None},
+        {"created_at": "2025-10-10 20:20", "date": "2025-10-20", "time": "20:00 – 21:00", "court": "Kurt 1",
+         "name": "Natália Uhríková", "email": "natalia@example.com", "phone": "+421 903 258 369",
+         "addons": {"rackets": 1, "camera": 1}, "total": "33,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "repre"},
+        {"created_at": "2025-10-10 12:14", "date": "2025-10-17", "time": "17:00 – 18:00", "court": "Kurt 1",
+         "name": "Andrea Kollová (2)", "email": "andrea2@palmapickleball.sk", "phone": "+421 900 000 001",
+         "addons": {"rackets": 2, "camera": 1}, "total": "30,00 €",
+         "avatar": url_for('static', filename='images/profile1.png'), "status": "partner"},
+    ]
+
+@app.get("/admin/api/reservations")
+def admin_api_reservations():
+    """Jednoduchý JSON feed pre admin UI (filter/stránkovanie/hlavička)."""
+    return jsonify({"ok": True, "reservations": sample_reservations()})
+# ===== /ADDED =====
+
+
 # =========================
 # Run
-# =========================
+# =========================r
 if __name__ == "__main__":
     # For production, run behind a real WSGI server (gunicorn/uvicorn) and disable debug.
     app.run(debug=True)

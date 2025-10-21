@@ -51,7 +51,11 @@
     .card{border:1px solid var(--border);border-radius:14px;background:#fff;box-shadow:var(--shadow)}
     .card-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .card-title{font-weight:750}
-    .card-body{padding:12px 12px 16px}
+
+    /* ✅ pager vždy pod zoznamom (stĺpcový layout) */
+    .card-body{padding:12px 12px 16px; display:flex; flex-direction:column;}
+    #resList{order:1}
+    #pager{order:2; align-self:center}
 
     /* Reservation row */
     .res{
@@ -67,7 +71,6 @@
     .num{width:36px;height:36px;border-radius:999px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:350;font-size:0.95rem}
 
     .ava{width:56px;height:56px;border-radius:999px;object-fit:cover;border:1px solid #eef0f5;background:#f6f7fb}
-    /* === NEW: wrapper + badge overlay (keeps the same 56x56 slot) === */
     .ava-wrap{position:relative;width:56px;height:56px}
     .badge-mark{
       position:absolute;left:-6px;bottom:-6px;
@@ -80,14 +83,14 @@
     .name{font-weight:700;display:flex;align-items:center;gap:4px}
     .status-dot{width:8px;height:8px;border-radius:999px;background:#cbd5e1;flex:0 0 8px}
     .status-dot.up{background:#16a34a}
-    .sub{color:var(--muted);font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; margin:2px 0;} /* 2px vertical spacing */
+    .sub{color:var(--muted);font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; margin:2px 0;}
 
     .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
     .chip{padding:4px 8px;border-radius:999px;font-size:.8rem;border:1px solid #dfe3ea;background:#f6f7fb;color:#475467}
     .chip.ok{border-color:var(--green-bd);background:#ecfdf3;color:#14653b}
     .chip.zero{border-color:#e6e8ee;background:#f4f5f7;color:#98a2b3}
 
-    /* Right column (kept aligned to the right edge overall) */
+    /* Right column */
     .right{
       display:grid;grid-template-columns:1fr;gap:6px;
       justify-items:end;text-align:right;width:420px
@@ -103,16 +106,15 @@
     .bar{color:#c0c4ce}
     .time{font-weight:750;font-size:1.05rem}
 
-    /* Link box — now starts at the same left as the court/date/time line */
     .linkbox{
       width:310px;display:flex;gap:6px;align-items:center;
       border:1px solid var(--border);border-radius:12px;padding:4px 6px;background:transparent;
       align-self:start;justify-self:start;
-      margin-left:96px; /* ⬅️ posunie celý placeholder viac doľava */
+      margin-left:96px;
     }
     .linkbox.needs-video{border-color:var(--red-bd);background:#fff5f5}
     .linkbox.saved{border-color:var(--green-bd);background:#ecfdf3}
-    .input{flex:1;min-width:140px;border:0;outline:0;font:inherit;font-size:.82rem;padding:3px 4px;background:transparent;text-align:left} /* left text */
+    .input{flex:1;min-width:140px;border:0;outline:0;font:inherit;font-size:.82rem;padding:3px 4px;background:transparent;text-align:left}
     .tick{width:34px;height:28px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;background:#fff;color:#16a34a;cursor:pointer}
     .tick.saved{background:#16a34a;border-color:#16a34a;color:#fff}
 
@@ -124,7 +126,7 @@
     .toast{position:fixed;right:16px;bottom:16px;background:#16a34a;color:#fff;padding:.7rem 1rem;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.12);opacity:0;transform:translateY(8px);pointer-events:none;transition:.18s ease}
     .toast.show{opacity:1;transform:translateY(0)}
 
-    /* ===== Pagination (new) ===== */
+    /* Pagination */
     .pagination{
       display:flex;justify-content:center;align-items:center;gap:6px;margin-top:16px;flex-wrap:wrap;
     }
@@ -135,7 +137,7 @@
     .page-btn[disabled]{opacity:.45;cursor:not-allowed}
     .page-btn.active{background:#111;color:#fff;border-color:#111}
 
-    /* NEW: hide by pagination (not by filters) */
+    /* Hide-by-pagination */
     .pg-hidden{visibility:hidden;position:absolute;pointer-events:none;height:0;margin-top:0}
   </style>
 </head>
@@ -218,7 +220,6 @@
           <article class="res">
             <div class="num">{{ display_num }}</div>
 
-            <!-- avatar with badge -->
             <div class="ava-wrap">
               <img class="ava" src="{{ r.avatar or url_for('static', filename='images/profile1.png') }}" alt="avatar">
               {% if r.status in ['clen','trener','partner','repre'] %}
@@ -291,7 +292,7 @@
   <div id="toast" class="toast">Uložené</div>
 
   <script>
-    // Weekday tag before date: (PO/UT/ST/ŠT/PI/SO/NE)
+    // Weekday tag before date
     (function(){
       const MAP = ['NE','PO','UT','ST','ŠT','PI','SO'];
       document.querySelectorAll('.wtag[data-iso]').forEach(span=>{
@@ -349,69 +350,131 @@
       }
     });
 
-    /* ========= Pagination (10 per page) – FIXED ========= */
+    /* ========= Pagination (10 per page) – fixed + sort-safe ========= */
     (function(){
       const perPage = 10;
       const listWrap = document.getElementById('resList');
       const pager = document.getElementById('pager');
-
-      // rows hidden by filters use display:none; rows hidden by pagination use .pg-hidden
-      function filteredItems(){
-        return Array.from(listWrap.querySelectorAll('.res'))
-          .filter(el => getComputedStyle(el).display !== 'none'); // ignore items hidden by filters
-      }
-
-      function renderPager(total, page, pages){
-        pager.innerHTML = '';
-        const mkBtn = (label, disabled, cb, active=false)=>{
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'page-btn' + (active ? ' active' : '');
-          b.textContent = label;
-          if(disabled){ b.disabled = true; }
-          b.addEventListener('click', cb);
-          pager.appendChild(b);
-        };
-        mkBtn('‹', page===1, ()=>go(page-1));
-        for(let i=1;i<=pages;i++){
-          mkBtn(String(i), false, ()=>go(i), i===page);
-        }
-        mkBtn('›', page===pages, ()=>go(page+1));
-      }
-
       let curPage = 1;
 
+      // drž pager pod zoznamom (pre prípadné reflow)
+      (listWrap.parentNode || document.body).appendChild(pager);
+
+      // všetky položky (bez ohľadu na display) – použijeme pri sorte
+      function allItems(){
+        return Array.from(listWrap.querySelectorAll('.res'));
+      }
+
+      // len položky nezakryté FILTROM (display != none) – štandardná stránka
+      function baseItems(){
+        return allItems().filter(el => getComputedStyle(el).display !== 'none');
+      }
+
+      function clearPgHides(){
+        listWrap.querySelectorAll('.res.pg-hidden').forEach(el=>el.classList.remove('pg-hidden'));
+      }
+
+      // 👉 kľúčové: pri sorte zruš inline display:none (ktorý vzniká počas zoradenia)
+      function normalizeAfterSort(){
+        allItems().forEach(el=>{
+          el.style.removeProperty('display'); // odmaskuj všetky
+          el.classList.remove('pg-hidden');   // a zruš staré stránkovacie skrytie
+        });
+      }
+
+      function renderPager(pages){
+        pager.innerHTML = '';
+        pager.insertAdjacentHTML('beforeend',
+          `<button type="button" class="page-btn" data-nav="prev" ${curPage===1?'disabled':''}>‹</button>`);
+        for(let i=1;i<=pages;i++){
+          pager.insertAdjacentHTML('beforeend',
+            `<button type="button" class="page-btn ${i===curPage?'active':''}" data-page="${i}">${i}</button>`);
+        }
+        pager.insertAdjacentHTML('beforeend',
+          `<button type="button" class="page-btn" data-nav="next" ${curPage===pages?'disabled':''}>›</button>`);
+        (listWrap.parentNode || document.body).appendChild(pager);
+      }
+
       function go(page){
-        const items = filteredItems();
+        clearPgHides();
+        const items = baseItems();
         const pages = Math.max(1, Math.ceil(items.length/perPage));
         curPage = Math.min(Math.max(1, page), pages);
-
-        items.forEach((el,i)=>{
+        items.forEach((el, i)=>{
           const show = i >= (curPage-1)*perPage && i < curPage*perPage;
           el.classList.toggle('pg-hidden', !show);
         });
-
-        renderPager(items.length, curPage, pages);
+        renderPager(pages);
       }
 
       function repaginate(keepPage=true){
-        // remove previous pagination hiding and re-apply on target page
-        listWrap.querySelectorAll('.res.pg-hidden').forEach(el=>el.classList.remove('pg-hidden'));
-        const target = keepPage ? curPage : 1;
-        go(target);
+        const items = baseItems();
+        const pages = Math.max(1, Math.ceil(items.length/perPage));
+        if(!keepPage) curPage = 1;
+        curPage = Math.min(Math.max(1, curPage), pages);
+        go(curPage);
       }
 
-      // initial
+      // init
       repaginate(false);
 
-      // When filters/sorts/search alter visibility, recompute but keep current page
-      const obs = new MutationObserver(()=>{ setTimeout(()=>repaginate(true), 0); });
-      obs.observe(listWrap, {childList:true, subtree:true, attributes:true, attributeFilter:['style','class']});
+      // kliky v pageri
+      pager.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button.page-btn');
+        if(!btn) return;
+        if(btn.dataset.page){
+          go(parseInt(btn.dataset.page,10));
+        } else if(btn.dataset.nav === 'prev'){
+          go(curPage - 1);
+        } else if(btn.dataset.nav === 'next'){
+          go(curPage + 1);
+        }
+      });
 
-      // In case filter script uses input events
-      document.addEventListener('input', ()=>setTimeout(()=>repaginate(true), 120));
+      /* 🔧 SORT DETEKCIA:
+         - 1) childList (DOM preusporiadanie) => normalizeAfterSort() + repaginate(false)
+         - 2) klik/change v .card-head (tvoje sort tlačidlá) => malé oneskorenie, potom normalize + repaginate(false)
+      */
+      const obs = new MutationObserver((mutations)=>{
+        const hasChildChange = mutations.some(m => m.type === 'childList');
+        const changedDisplay = mutations.some(m =>
+          m.type === 'attributes' &&
+          m.attributeName === 'style' &&
+          m.target.classList && m.target.classList.contains('res')
+        );
+        if(hasChildChange){
+          normalizeAfterSort();
+          setTimeout(()=>repaginate(false), 0); // od 1. strany, zachová počet strán
+        } else if(changedDisplay){
+          setTimeout(()=>repaginate(true), 0);  // filter len prepočíta aktuálnu
+        }
+      });
+      obs.observe(listWrap, {subtree:true, attributes:true, attributeFilter:['style'], childList:true});
+
+      const head = document.querySelector('.card-head');
+      if(head){
+        const runSortRepage = ()=>{ normalizeAfterSort(); setTimeout(()=>repaginate(false), 0); };
+
+        head.addEventListener('click', (e)=>{
+          // run ONLY when a sort button was clicked
+          if(e.target.closest('.sort-btn')) runSortRepage();
+        });
+
+        head.addEventListener('change', (e)=>{
+          // run ONLY when a sort control changes (if you add selects later)
+          if(e.target.closest('.sort-btn')) runSortRepage();
+        });
+      }
+
+      // inputs (napr. text filtre)
+      document.addEventListener('input', ()=>setTimeout(()=>repaginate(true), 100));
+
+      // šípky
+      document.addEventListener('keydown',(e)=>{
+        if(e.key==='ArrowLeft')  { e.preventDefault(); go(curPage-1); }
+        if(e.key==='ArrowRight') { e.preventDefault(); go(curPage+1); }
+      });
     })();
-
   </script>
 </body>
 </html>
