@@ -128,10 +128,10 @@
 
     <div class="sort" id="sorters">
       <span class="sort-label">Zoradiť podľa:</span>
-      <button class="sort-btn active" data-sort="slot" title="Podľa času slotu">
+      <button class="sort-btn" data-sort="slot" title="Podľa času slotu">
         <i class="fa-regular fa-bell"></i>
       </button>
-      <button class="sort-btn" data-sort="created" title="Podľa dátumu rezervácie">
+      <button class="sort-btn active" data-sort="created" title="Podľa dátumu rezervácie">
         <i class="fa-regular fa-clock"></i>
       </button>
     </div>
@@ -194,14 +194,13 @@
   });
 
   // Sort
-  let sortMode = 'slot';
+  let sortMode = 'created';
   $('#sorters').addEventListener('click', e=>{
     const b = e.target.closest('.sort-btn');
     if(!b) return;
     sortMode = b.dataset.sort;
     $$('.sort-btn').forEach(s=>s.classList.toggle('active', s===b));
     applyFilters(true);
-    // after sorting, page 1 of the sorted results
     if (window.repaginate) window.repaginate(false);
   });
 
