@@ -744,6 +744,7 @@ def sample_reservations():
         },
     ]
 
+
 @app.get("/admin/api/reservations")
 def admin_api_reservations():
     """Jednoduchý JSON feed pre admin UI (filter/stránkovanie/hlavička)."""
