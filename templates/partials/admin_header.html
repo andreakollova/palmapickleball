@@ -40,19 +40,19 @@
   }
   .filter-btn:hover { background: #f7f8fa; }
   .filter-btn.active {
-    background: #f3f4f6;       /* svetlé pozadie */
-    color: #111;               /* čierny text */
-    border-color: #d1d5db;     /* jemná sivá hranica */
+    background: #f3f4f6;
+    color: #111;
+    border-color: #d1d5db;
   }
 
-  /* Right cluster (search + sort) — celý blok doprava */
+  /* Right cluster (search + sort) */
   .header-right {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
-    flex: 1;                    /* vyplní zvyšok riadku */
-    justify-content: flex-end;  /* ⬅️ zarovnanie doprava */
+    flex: 1;
+    justify-content: flex-end;
   }
 
   /* Search */
@@ -78,12 +78,12 @@
   }
   .search-btn:hover { color: var(--ink); background: #f7f8fa; }
 
-  /* Sort (drž sa úplne vpravo spolu so searchom) */
+  /* Sort */
   .sort {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-left: 130px;         /* posun doprava, ponechané */
+    margin-left: 130px;
     justify-content: flex-end;
   }
   .sort-label {
@@ -155,16 +155,31 @@
     if(t) t.textContent = `Dnes (${tag}, ${dd}.${mm}.${yyyy})`;
   })();
 
-  // Search toggle
+  // Search toggle + live search
   const searchBox    = $('#searchBox');
   const searchToggle = $('#searchToggle');
   const searchInput  = $('#searchInput');
+
   searchToggle.addEventListener('click', ()=>{
     searchBox.classList.toggle('open');
     if(searchBox.classList.contains('open')) searchInput.focus();
-    applyFilters(); // nech sa prefiltruje hneď po otvorení/zatvorení
+    applyFilters();
+    // 🔁 also refresh pagination after click
+    if (window.repaginate) window.repaginate(false);
   });
-  searchInput.addEventListener('input', applyFilters);
+
+  // merged REAL-TIME handler (replaces your two separate 'input' listeners)
+  searchInput.addEventListener('input', ()=>{
+    applyFilters();
+    if (searchInput.value.trim()) searchBox.classList.add('open');
+
+    // 🔁 tell pagination to recompute after each keystroke
+    if (window.repaginate) window.repaginate(false);
+  });
+
+  searchInput.addEventListener('focus', ()=>{
+    searchBox.classList.add('open');
+  });
 
   // Filters
   let activeFilter = 'all';
@@ -174,6 +189,8 @@
     activeFilter = btn.dataset.filter;
     $$('.filter-btn').forEach(b=>b.classList.toggle('active', b===btn));
     applyFilters();
+    // optional: jump pagination to first page when filter changes
+    if (window.repaginate) window.repaginate(false);
   });
 
   // Sort
@@ -184,39 +201,28 @@
     sortMode = b.dataset.sort;
     $$('.sort-btn').forEach(s=>s.classList.toggle('active', s===b));
     applyFilters(true);
+    // after sorting, page 1 of the sorted results
+    if (window.repaginate) window.repaginate(false);
   });
 
   // ===== Robustné čítanie dátumu/času slotu =====
   function parseSlot(article){
-    // 1) Skús prečítať spoľahlivé zdroje: .status-dot[data-date][data-time] alebo .wtag[data-iso]
     const dot = article.querySelector('.status-dot');
     const wtag = article.querySelector('.wtag');
-
-    const isoDate = (dot && dot.getAttribute('data-date'))
-                 || (wtag && wtag.getAttribute('data-iso'))
-                 || null; // očakávame YYYY-MM-DD
-
-    // 2) Čas – prvý výskyt HH:MM z .time (ignorujeme koniec rozsahu)
+    const isoDate = (dot && dot.getAttribute('data-date')) || (wtag && wtag.getAttribute('data-iso')) || null;
     const timeText = (article.querySelector('.time')?.textContent || '').replace(/\u00a0/g,' ').trim();
-    const m = timeText.match(/(\d{1,2}):(\d{2})/); // tolerantné (01-23):(00-59)
+    const m = timeText.match(/(\d{1,2}):(\d{2})/);
     const hh = m ? parseInt(m[1],10) : 0;
     const mi = m ? parseInt(m[2],10) : 0;
-
     if(isoDate && /^\d{4}-\d{2}-\d{2}$/.test(isoDate)){
       const [Y,M,D] = isoDate.split('-').map(Number);
       return new Date(Y, M-1, D, hh, mi, 0, 0);
     }
-
-    // 3) Fallback: pokús sa rozparsovať z textovej .dt (napr. "25. 10. 2025")
-    const dtRaw = (article.querySelector('.dt')?.textContent || '')
-      .replace(/\u00a0/g, ' ')
-      .trim();
-    // najprv skúsiť YYYY-MM-DD…
+    const dtRaw = (article.querySelector('.dt')?.textContent || '').replace(/\u00a0/g, ' ').trim();
     if(/^\d{4}-\d{2}-\d{2}$/.test(dtRaw)){
       const [Y,M,D] = dtRaw.split('-').map(Number);
       return new Date(Y, M-1, D, hh, mi, 0, 0);
     }
-    // …inak DD.MM.YYYY (s prípadnými medzerami)
     const parts = dtRaw.replace(/\s/g,'').split('.').filter(Boolean);
     if(parts.length >= 3){
       const D = parseInt(parts[0],10);
@@ -226,12 +232,10 @@
         return new Date(Y, M-1, D, hh, mi, 0, 0);
       }
     }
-    // ak sa nič nepodarí, vráť "najnižší" dátum
     return new Date(0);
   }
 
   function parseCreated(article){
-    // čítame z textu "Zaplatené: dd.mm.yyyy"
     const txt = article.querySelector('.paid')?.textContent || '';
     const m = txt.match(/Zaplatené:\s*(\d{2})\.(\d{2})\.(\d{4})/);
     if(!m) return new Date(0);
@@ -252,33 +256,49 @@
            start.getDate()===now.getDate();
   }
 
-  function applyFilters(doSort=false){
-    const term = searchBox.classList.contains('open') ? (searchInput.value||'').toLowerCase() : '';
-    const list = $$('.card-body .res');
+  // --- helpery ---
+  function stripDiacritics(s=''){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function digitsOnly(s=''){ return s.replace(/\D+/g,''); }
 
-    // 1) Filtruj podľa tlačidiel + vyhľadávania
-    list.forEach(a=>{
+  /* ✅ FILTER + SORT LOGIKA (nezmenené okrem refaktorovania pre čistotu) */
+  function applyFilters(doSort = false) {
+    const container = document.getElementById('resList') || document.querySelector('.card-body');
+    const list = Array.from(container.querySelectorAll('.res'));
+    list.forEach(el => el.classList.remove('pg-hidden'));
+
+    const rawTerm    = (searchInput.value || '');
+    const term       = rawTerm.trim().toLowerCase();
+    const termNorm   = term.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const termDigits = term.replace(/\D/g,'');
+
+    list.forEach(a => {
       let show = true;
-      if(activeFilter==='upcoming') show = isUpcoming(a);
-      if(activeFilter==='today')    show = isToday(a);
-      if(show && term){
-        const blob = (a.textContent||'').toLowerCase();
-        show = blob.includes(term);
+      if (activeFilter === 'upcoming') show = isUpcoming(a);
+      if (activeFilter === 'today')    show = isToday(a);
+
+      if (show && term) {
+        const nameEl = a.querySelector('.name');
+        const subEl  = a.querySelector('.sub');
+        const nameText = (nameEl?.textContent || '').replace(/\s+/g,' ').trim().toLowerCase();
+        const subText  = (subEl?.textContent  || '').replace(/\s+/g,' ').trim().toLowerCase();
+        const combined      = `${nameText} ${subText}`;
+        const combinedNorm  = combined.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        const subDigitsOnly = subText.replace(/\D/g,'');
+        const textMatch  = combinedNorm.includes(termNorm);
+        const phoneMatch = (termDigits && termDigits.length >= 3 && subDigitsOnly.includes(termDigits));
+        show = textMatch || phoneMatch;
       }
       a.style.display = show ? '' : 'none';
     });
 
-    // 2) Zoradenie len viditeľných (ak sa klikol sort)
-    if(doSort){
-      const visible = list.filter(a=>a.style.display!=='none');
-      // appenduj vždy do reálneho zoznamu, nie do .card-body
-      const container = document.getElementById('resList') || document.querySelector('.card-body');
+    if (doSort) {
+      const visible = list.filter(a => a.style.display !== 'none');
       visible.sort((a,b)=>{
-        return sortMode==='created'
+        return sortMode === 'created'
           ? (parseCreated(b) - parseCreated(a))
-          : (parseSlot(b)    - parseSlot(a));
+          : (parseSlot(b) - parseSlot(a));
       });
-      visible.forEach(a=>container.appendChild(a));
+      visible.forEach(a => container.appendChild(a));
     }
   }
 

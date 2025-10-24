@@ -202,75 +202,75 @@
         {% set total = ordered|length %}
 
         <div id="resList">
-        {% for r in ordered %}
-          {% set display_num = total - loop.index0 %}
-          {% set rc = r.addons.rackets if r.addons and 'rackets' in r.addons else 0 %}
-          {% set cam = r.addons.camera  if r.addons and 'camera'  in r.addons else 0 %}
-          {% set court_class = 'k1' if (r.court|string).strip().endswith('1') else 'k2' %}
+          {% for r in ordered %}
+            {% set display_num = total - loop.index0 %}
+            {% set rc = r.addons.rackets if r.addons and 'rackets' in r.addons else 0 %}
+            {% set cam = r.addons.camera  if r.addons and 'camera'  in r.addons else 0 %}
+            {% set court_class = 'k1' if (r.court|string).strip().endswith('1') else 'k2' %}
 
-          <article class="res">
-            <div class="num">{{ display_num }}</div>
+            <article class="res">
+              <div class="num">{{ display_num }}</div>
 
-            <div class="ava-wrap">
-              <img class="ava" src="{{ r.avatar or url_for('static', filename='images/profile1.png') }}" alt="avatar">
-              {% if r.status in ['clen','trener','partner','repre'] %}
-                <img class="badge-mark" src="{{ url_for('static', filename='images/badges/' ~ r.status ~ '.png') }}" alt="{{ r.status }}">
-              {% endif %}
-            </div>
-
-            <div class="main">
-              <div class="name">
-                <span class="status-dot" data-date="{{ r.date }}" data-time="{{ r.time }}"></span>
-                {{ r.name }}
-              </div>
-              <div class="sub">{{ r.email }} • {{ r.phone }}</div>
-              <div class="chips">
-                <span class="chip {{ rc>0 and 'ok' or 'zero' }}">Rakety × {{ rc }}</span>
-                <span class="chip {{ cam>0 and 'ok' or 'zero' }}">Kamera × {{ cam }}</span>
-                <span class="chip">Suma: {{ r.total }}</span>
-              </div>
-            </div>
-
-            <div class="right">
-              <div class="dtline">
-                <span class="badge-court {{ court_class }}">{{ r.court }}</span>
-                <span class="wtag" data-iso="{{ r.date }}"></span>
-                <span class="dt">
-                  {% set d = r.date|string %}
-                  {% if d|length == 10 and '-' in d %}
-                    {% set y = d[0:4] %}{% set m = d[5:7] %}{% set dd = d[8:10] %}
-                    {{ dd }}.&nbsp;{{ m }}.&nbsp;{{ y }}
-                  {% else %}{{ r.date }}{% endif %}
-                </span>
-                <span class="bar">|</span>
-                <span class="time">{{ r.time }}</span>
-              </div>
-
-              <div class="linkbox {{ cam>0 and 'needs-video' or '' }}">
-                <input class="input" type="url" placeholder="Video link (Drive, Dropbox…)" />
-                <button class="tick" type="button" aria-label="Uložiť">
-                  <i class="fa-solid fa-check"></i>
-                </button>
-              </div>
-
-              <div class="paid">
-                {% set c = r.created_at|string %}
-                {% if c|length >= 10 and '-' in c %}
-                  {% set y = c[0:4] %}{% set m = c[5:7] %}{% set dd = c[8:10] %}
-                  Zaplatené: {{ dd }}.{{ m }}.{{ y }}
-                {% else %}
-                  Zaplatené: {{ r.created_at or '-' }}
+              <div class="ava-wrap">
+                <img class="ava" src="{{ r.avatar or url_for('static', filename='images/profile1.png') }}" alt="avatar">
+                {% if r.status in ['clen','trener','partner','repre'] %}
+                  <img class="badge-mark" src="{{ url_for('static', filename='images/badges/' ~ r.status ~ '.png') }}" alt="{{ r.status }}">
                 {% endif %}
-                <span class="bar">|</span>
-                <a class="refund-link" href="javascript:void(0)">Refundovať</a>
-                <span class="bar">|</span>
-                <a class="invoice-link" href="javascript:void(0)">
-                  <i class="fa-regular fa-file-lines"></i> Faktúra
-                </a>
               </div>
-            </div>
-          </article>
-        {% endfor %}
+
+              <div class="main">
+                <div class="name">
+                  <span class="status-dot" data-date="{{ r.date }}" data-time="{{ r.time }}"></span>
+                  {{ r.name }}
+                </div>
+                <div class="sub">{{ r.email }} • {{ r.phone }}</div>
+                <div class="chips">
+                  <span class="chip {{ rc>0 and 'ok' or 'zero' }}">Rakety × {{ rc }}</span>
+                  <span class="chip {{ cam>0 and 'ok' or 'zero' }}">Kamera × {{ cam }}</span>
+                  <span class="chip">Suma: {{ r.total }}</span>
+                </div>
+              </div>
+
+              <div class="right">
+                <div class="dtline">
+                  <span class="badge-court {{ court_class }}">{{ r.court }}</span>
+                  <span class="wtag" data-iso="{{ r.date }}"></span>
+                  <span class="dt">
+                    {% set d = r.date|string %}
+                    {% if d|length == 10 and '-' in d %}
+                      {% set y = d[0:4] %}{% set m = d[5:7] %}{% set dd = d[8:10] %}
+                      {{ dd }}.&nbsp;{{ m }}.&nbsp;{{ y }}
+                    {% else %}{{ r.date }}{% endif %}
+                  </span>
+                  <span class="bar">|</span>
+                  <span class="time">{{ r.time }}</span>
+                </div>
+
+                <div class="linkbox {{ cam>0 and 'needs-video' or '' }}">
+                  <input class="input" type="url" placeholder="Video link (Drive, Dropbox…)" />
+                  <button class="tick" type="button" aria-label="Uložiť">
+                    <i class="fa-solid fa-check"></i>
+                  </button>
+                </div>
+
+                <div class="paid">
+                  {% set c = r.created_at|string %}
+                  {% if c|length >= 10 and '-' in c %}
+                    {% set y = c[0:4] %}{% set m = c[5:7] %}{% set dd = c[8:10] %}
+                    Zaplatené: {{ dd }}.{{ m }}.{{ y }}
+                  {% else %}
+                    Zaplatené: {{ r.created_at or '-' }}
+                  {% endif %}
+                  <span class="bar">|</span>
+                  <a class="refund-link" href="javascript:void(0)">Refundovať</a>
+                  <span class="bar">|</span>
+                  <a class="invoice-link" href="javascript:void(0)">
+                    <i class="fa-regular fa-file-lines"></i> Faktúra
+                  </a>
+                </div>
+              </div>
+            </article>
+          {% endfor %}
         </div>
 
         <!-- Pagination -->
@@ -437,7 +437,7 @@
           normalizeAfterSort();
           setTimeout(()=>repaginate(false), 0); // od 1. strany, zachová počet strán
         } else if(changedDisplay){
-          setTimeout(()=>repaginate(true), 0);  // filter len prepočíta aktuálnu
+          setTimeout(()=>repaginate(false), 0); // resetni na 1. stranu po vyhľadávaní/filtri
         }
       });
       obs.observe(listWrap, {subtree:true, attributes:true, attributeFilter:['style'], childList:true});
@@ -458,7 +458,7 @@
       }
 
       // inputs (napr. text filtre)
-      document.addEventListener('input', ()=>setTimeout(()=>repaginate(true), 100));
+      document.addEventListener('input', ()=>setTimeout(()=>repaginate(false), 100));
 
       // šípky
       document.addEventListener('keydown',(e)=>{
