@@ -213,7 +213,7 @@
 
               <div class="ava-wrap">
                 <img class="ava" src="{{ r.avatar or url_for('static', filename='images/profile1.png') }}" alt="avatar">
-                {% if r.status in ['clen','trener','partner','repre'] %}
+                {% if r.status in ['clen','staff'] %}
                   <img class="badge-mark" src="{{ url_for('static', filename='images/badges/' ~ r.status ~ '.png') }}" alt="{{ r.status }}">
                 {% endif %}
               </div>
