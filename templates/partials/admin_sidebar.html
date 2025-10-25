@@ -3,28 +3,42 @@
   <h3>Navigácia</h3>
   <ul class="nav">
     <li>
-      <a class="{{ 'active' if active == 'reservations' else '' }}" href="{{ url_for('admin_dashboard') }}">
-        <i class="fa-regular fa-calendar ico"></i> Rezervácie
+      <a class="{{ 'active' if active == 'reservations' else '' }}"
+         href="{{ url_for('admin_dashboard') }}">
+        <i class="fa-regular fa-calendar ico"></i>
+        Rezervácie
       </a>
     </li>
+
     <li>
-      <a class="{{ 'active' if active == 'customers' else '' }}" href="{{ url_for('admin_dashboard') }}">
-        <i class="fa-regular fa-user ico"></i> Zoznam zákazníkov
+      <a class="{{ 'active' if active == 'customers' else '' }}"
+         href="{{ url_for('admin_customers') }}">
+        <i class="fa-regular fa-user ico"></i>
+        Zoznam zákazníkov
       </a>
     </li>
+
     <li>
-      <a class="{{ 'active' if active == 'join' else '' }}" href="{{ url_for('admin_dashboard') }}">
-        <i class="fa-regular fa-circle-play ico"></i> Pridaj sa do hry
+      <a class="{{ 'active' if active == 'join' else '' }}"
+         href="{{ url_for('admin_dashboard') }}">
+        <i class="fa-regular fa-circle-play ico"></i>
+        Pridaj sa do hry
       </a>
     </li>
+
     <li>
-      <a class="{{ 'active' if active == 'partners' else '' }}" href="{{ url_for('admin_dashboard') }}">
-        <i class="fa-regular fa-handshake ico"></i> Partneri
+      <a class="{{ 'active' if active == 'stats' else '' }}"
+         href="{{ url_for('admin_stats') }}">
+        <i class="fa-solid fa-chart-line ico"></i>
+        Štatistiky
       </a>
     </li>
+
     <li>
-      <a class="{{ 'active' if active == 'stats' else '' }}" href="{{ url_for('admin_dashboard') }}">
-        <i class="fa-solid fa-chart-line ico"></i> Štatistiky
+      <a class="{{ 'active' if active == 'codes' else '' }}"
+         href="{{ url_for('admin_codes') }}">
+        <i class="fa-solid fa-ticket-simple ico"></i>
+        Zľavové kódy
       </a>
     </li>
   </ul>

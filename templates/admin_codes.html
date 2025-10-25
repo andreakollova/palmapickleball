@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin – Zľavové kódy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    :root{
+      --accent:#3a38d6;
+      --ink:#111827;
+      --muted:#667085;
+      --border:#e7e9ef;
+      --shadow:0 6px 24px rgba(16,24,40,.06);
+      --radius:12px;
+      --sidebar:250px;
+    }
+
+    body{
+      margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      color:var(--ink);
+      background:#fff;
+    }
+
+    /* Top bar */
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:40;
+      background:#fff;
+      border-bottom:1px solid var(--border);
+      padding:10px 16px;
+    }
+    .tb{
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:var(--ink);
+      text-decoration:none;
+    }
+    .brand img{height:30px}
+    .title-strong{
+      font-weight:800;
+      letter-spacing:.01em;
+    }
+    .btn-top{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:.48rem .9rem;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:#fff;
+      color:var(--ink);
+      text-decoration:none;
+      font-weight:500;
+      line-height:1.15;
+      cursor:pointer;
+      font-size:.9rem;
+    }
+    .btn-top:hover{filter:brightness(.98)}
+
+    /* Layout grid */
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:18px 12px 60px;
+      display:grid;
+      gap:18px;
+      grid-template-columns:var(--sidebar) 1fr;
+    }
+    @media(max-width:992px){
+      .wrap{grid-template-columns:1fr}
+    }
+
+    /* sidebar */
+    .side{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+      box-shadow:var(--shadow);
+      padding:14px;
+      position:sticky;
+      top:72px;
+      height:fit-content;
+    }
+    .side h3{
+      margin:0 0 8px 0;
+      font-size:1.05rem;
+      font-weight:750;
+    }
+    .nav{list-style:none;margin:0;padding:0}
+    .nav a{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:10px;
+      text-decoration:none;
+      color:var(--ink);
+      border:1px solid transparent;
+      font-size:.9rem;
+      font-weight:500;
+    }
+    .nav a:hover{background:#fafbff;border-color:#eef0f5}
+    .nav a.active{background:#f3f4ff;border-color:#dfe1ff;color:#2b2acb}
+    .ico{
+      width:16px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    /* main card */
+    .card{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+
+    .card-head{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:flex-start;
+      justify-content:space-between;
+      padding:16px;
+      border-bottom:1px solid var(--border);
+      gap:12px;
+    }
+    .card-head-left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .section-title{
+      font-size:1.2rem;
+      font-weight:600;
+      letter-spacing:-0.02em;
+      color:var(--ink);
+      line-height:1.3;
+    }
+
+    .card-body{
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+    }
+
+    /******** FORM NOVÝ KÓD (2 kolóny layout podľa screenshotu) ********/
+
+    .newcode-grid-2col{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:24px 32px;
+      align-items:flex-start;
+    }
+    @media(max-width:780px){
+      .newcode-grid-2col{
+        grid-template-columns:1fr;
+      }
+    }
+
+    /* ĽAVÝ STĹPEC = Kód + Typ zľavy + Hodnota */
+    .left-col-block{
+      display:flex;
+      flex-direction:column;
+      gap:20px;
+      min-width:0;
+    }
+
+    /* PRAVÝ STĹPEC = Popis + Platnosť + tlačidlá */
+    .right-col-block{
+      display:flex;
+      flex-direction:column;
+      gap:20px;
+      min-width:0;
+    }
+
+    .form-group{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:0;
+    }
+    .form-row-inline{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:flex-start;
+      gap:16px;
+    }
+
+    .label-line{
+      font-size:.8rem;
+      font-weight:500;
+      color:var(--ink);
+      line-height:1.2;
+    }
+
+    /* Inputs */
+    .input-wrap{
+      position:relative;
+      min-width:0;
+      flex:1 1 auto;
+    }
+
+    .text-input{
+      width:100%;
+      box-sizing:border-box;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:.9rem;
+      line-height:1.3;
+      font-family:inherit;
+      color:var(--ink);
+      background:#fff;
+    }
+
+    .text-input.code-input{
+      padding-right:36px; /* miesto pre ikonku magic */
+    }
+
+    /* ikonka ✨ v poli kód */
+    .magic-btn{
+      position:absolute;
+      top:0;
+      right:0;
+      height:100%;
+      width:32px;
+      border:0;
+      background:transparent;
+      border-left:1px solid var(--border);
+      color:var(--ink);
+      font-size:.85rem;
+      line-height:1;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-top-right-radius:10px;
+      border-bottom-right-radius:10px;
+    }
+
+    /* select pre typ zľavy */
+    .select-input{
+      width:100%;
+      box-sizing:border-box;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:.9rem;
+      line-height:1.3;
+      font-family:inherit;
+      color:var(--ink);
+      background:#fff;
+      appearance:none;
+    }
+
+    /* Hodnota kratšia placeholder */
+    .value-input{max-width:120px;}
+
+    /* PLATNOSŤ pill buttons */
+    .validity-row{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:flex-start;
+      gap:12px 16px;
+      justify-content:space-between;
+    }
+
+    .validity-left{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      flex:1 1 auto;
+      min-width:0;
+    }
+
+    .validity-pills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .validity-pill{
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:8px 12px;
+      font-size:.8rem;
+      font-weight:500;
+      line-height:1.2;
+      cursor:pointer;
+      background:#fff;
+      color:var(--ink);
+    }
+    .validity-pill.active{
+      background:#f3f4f6;          /* sivé aktívne */
+      border-color:#d1d5db;
+      color:#111827;
+    }
+
+    .actions-right{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:flex-end;
+      justify-content:flex-end;
+      flex:0 0 auto;
+    }
+
+    .btn-save-main{
+      background:var(--accent);
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      padding:10px 14px;
+      font-size:.88rem;
+      font-weight:500;
+      line-height:1.2;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+    }
+    .btn-cancel{
+      background:#fff;
+      border:1px solid var(--border);
+      color:var(--ink);
+      border-radius:10px;
+      padding:10px 14px;
+      font-size:.88rem;
+      font-weight:500;
+      line-height:1.2;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+
+    /******** TABUĽKA EXISTUJÚCICH KÓDOV ********/
+    .codes-table-wrap{
+      border:1px solid var(--border);
+      border-radius:12px;
+      overflow:hidden;
+    }
+
+    .codes-head-row{
+      background:#fafafa;
+      border-bottom:1px solid var(--border);
+      display:grid;
+      grid-template-columns:140px 1fr 110px 100px 40px;
+      gap:12px;
+      padding:10px 12px;
+      font-size:.8rem;
+      font-weight:600;
+      color:#475467;
+    }
+
+    .code-row{
+      display:grid;
+      grid-template-columns:140px 1fr 110px 100px 40px;
+      gap:12px;
+      align-items:center;
+      padding:14px 12px;
+      border-bottom:1px solid #f2f3f6;
+      font-size:.9rem;
+      line-height:1.4;
+      background:#fff;
+    }
+    .code-row:last-child{
+      border-bottom:0;
+    }
+
+    .col-code{
+      font-weight:600;
+      color:var(--ink);
+      word-break:break-word;
+    }
+    .col-desc{
+      color:var(--muted);
+      font-size:.85rem;
+      line-height:1.4;
+      word-break:break-word;
+    }
+
+    .type-text{
+      font-size:.8rem;
+      font-weight:600;
+      line-height:1.2;
+      white-space:nowrap;
+    }
+    .type-percent{color:#3a38d6;}    /* fialová */
+    .type-amount{color:#000;}        /* čierna / € zľava */
+    .type-rackets{color:#6b7280;}    /* sivá */
+    .type-camera{color:#6b7280;}     /* sivá */
+    .type-free{color:#16a34a;}       /* zelená */
+
+    .small-toggle{
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:6px 8px;
+      font-size:.8rem;
+      line-height:1.2;
+      cursor:pointer;
+      text-align:center;
+      user-select:none;
+      color:#475467;
+      background:#fff;
+    }
+    .small-toggle.active{
+      background:#ecfdf3;
+      border-color:#bbf7d0;
+      color:#047857;
+    }
+
+    .row-icons{
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap:10px;
+    }
+    .icon-btn{
+      background:none;
+      border:1px solid var(--border);
+      border-radius:8px;
+      width:28px;
+      height:28px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      font-size:.7rem;
+      line-height:1;
+      color:#c9cbd2;
+    }
+
+    @media(max-width:700px){
+      .codes-head-row{display:none;}
+      .code-row{
+        grid-template-columns:1fr auto;
+        grid-template-areas:
+          "info actions";
+        row-gap:10px;
+      }
+      .code-maininfo{
+        grid-area:info;
+        display:flex;
+        flex-direction:column;
+        gap:6px;
+      }
+      .code-line1{
+        display:flex;
+        flex-wrap:wrap;
+        align-items:center;
+        gap:8px;
+      }
+      .code-line1 .col-code{font-size:.95rem;}
+      .code-line1 .type-text{font-size:.8rem;}
+      .code-line2{
+        font-size:.8rem;
+        color:var(--muted);
+        line-height:1.3;
+      }
+      .code-meta{
+        display:flex;
+        flex-wrap:wrap;
+        gap:8px;
+        font-size:.8rem;
+        align-items:center;
+      }
+      .code-actions{
+        grid-area:actions;
+        display:flex;
+        flex-direction:column;
+        align-items:flex-end;
+        gap:8px;
+      }
+    }
+
+    /* NEW: wrapper that keeps pills + buttons on one line */
+.validity-action-row{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-end;
+  gap:12px 16px;
+}
+
+/* pills container */
+.validity-pills{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+/* make pills slightly smaller so everything fits in one row */
+.validity-pill{
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:6px 10px;         /* was 8px 12px -> smaller */
+  font-size:.78rem;         /* was .8rem -> a bit smaller */
+  font-weight:500;
+  line-height:1.2;
+  cursor:pointer;
+  background:#fff;
+  color:var(--ink);
+}
+.validity-pill.active{
+  background:#f3f4f6;
+  border-color:#d1d5db;
+  color:#111827;
+}
+
+/* inline actions right after pills, not on new line */
+.actions-inline-flat{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  align-items:flex-end;
+}
+
+/* buttons keep same styles you already had */
+.btn-save-main{
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:.88rem;
+  font-weight:500;
+  line-height:1.2;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+}
+.btn-cancel{
+  background:#fff;
+  border:1px solid var(--border);
+  color:var(--ink);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:.88rem;
+  font-weight:500;
+  line-height:1.2;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Top nav -->
+  <header class="topbar">
+    <div class="tb">
+      <a class="brand" href="#">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball">
+        <span class="title-strong">Palma Admin</span>
+      </a>
+      <div class="tb-actions">
+        <a class="btn-top" href="{{ url_for('index') }}">Domov</a>
+        <a class="btn-top" href="/adminpanel">Odhlásiť</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    {% include "partials/admin_sidebar.html" %}
+
+    <main class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="section-title">Zľavové kódy</div>
+        </div>
+      </div>
+
+      <div class="card-body">
+
+        <!-- NOVÝ KÓD - dvojstĺpcový layout -->
+        <form id="newCodeForm" class="newcode-grid-2col" onsubmit="return false;">
+
+          <!-- LEFT COLUMN -->
+          <div class="left-col-block">
+
+            <!-- Kód -->
+            <div class="form-group">
+              <div class="label-line">Kód</div>
+              <div class="input-wrap">
+                <input id="codeInput" class="text-input code-input" placeholder="PALMA20" />
+                <button id="magicGen" type="button" class="magic-btn" title="Vygenerovať">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Typ zľavy + Hodnota -->
+            <div class="form-row-inline">
+              <div class="form-group" style="flex:1 1 auto; min-width:180px;">
+                <div class="label-line">Typ zľavy</div>
+                <select id="typeInput" class="select-input">
+                  <option value="percent">Percentuálna zľava (%)</option>
+                  <option value="amount">Pevná suma (€)</option>
+                  <option value="free_all">Celé zdarma (0€)</option>
+                  <option value="free_rackets">Rakety zadarmo</option>
+                  <option value="free_camera">Kamera zadarmo</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="flex:0 0 auto;">
+                <div class="label-line">Hodnota</div>
+                <input id="valueInput" type="number" class="text-input value-input" placeholder="20" />
+              </div>
+            </div>
+
+          </div><!-- /left-col-block -->
+
+
+          <!-- RIGHT COLUMN -->
+          <div class="right-col-block">
+
+            <!-- Popis -->
+            <div class="form-group">
+              <div class="label-line">Popis (interné)</div>
+              <input id="descInput" class="text-input" placeholder="Krátky popis…" />
+            </div>
+
+            <!-- Platnosť + tlačidlá všetko v jednom riadku -->
+            <div class="form-group">
+              <div class="label-line">Platnosť</div>
+
+              <div class="validity-action-row">
+                <div class="validity-pills">
+                  <div class="validity-pill active" data-val="once" id="onceBtn">Jednorazové</div>
+                  <div class="validity-pill" data-val="unlimited" id="unlimBtn">Neobmedzené</div>
+                </div>
+
+                <div class="actions-inline-flat">
+                  <button id="saveBtn" type="button" class="btn-save-main">
+                    <i class="fa-solid fa-plus"></i>
+                    Pridať kód
+                  </button>
+
+                  <button type="button" class="btn-cancel">
+                    Zrušiť
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /right-col-block -->
+
+        </form>
+
+        <!-- EXISTUJÚCE KÓDY -->
+        <div class="codes-table-wrap" id="codesTable">
+
+          <div class="codes-head-row">
+            <div>Kód</div>
+            <div>Popis</div>
+            <div>Typ</div>
+            <div>Stav</div>
+            <div style="text-align:right;">Akcia</div>
+          </div>
+
+          <!-- existujúce riadky (nové pôjdu HORE) -->
+          <div class="code-row">
+            <div class="col-code">PALMA20</div>
+            <div class="col-desc">-20% z ceny kurtu</div>
+            <div class="type-text type-percent">Percento</div>
+            <div class="small-toggle active">Zapnutý</div>
+            <div class="row-icons">
+              <button class="icon-btn del-btn" title="Zmazať">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="code-row">
+            <div class="col-code">FREERACKET</div>
+            <div class="col-desc">Rakety zadarmo</div>
+            <div class="type-text type-rackets">Rakety</div>
+            <div class="small-toggle active">Zapnutý</div>
+            <div class="row-icons">
+              <button class="icon-btn del-btn" title="Zmazať">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="code-row">
+            <div class="col-code">VIP100</div>
+            <div class="col-desc">Celé zdarma (0€)</div>
+            <div class="type-text type-free">Zdarma</div>
+            <div class="small-toggle">Vypnutý</div>
+            <div class="row-icons">
+              <button class="icon-btn del-btn" title="Zmazať">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="code-row">
+            <div class="col-code">CAMERA</div>
+            <div class="col-desc">Kamera zadarmo</div>
+            <div class="type-text type-camera">Kamera</div>
+            <div class="small-toggle active">Zapnutý</div>
+            <div class="row-icons">
+              <button class="icon-btn del-btn" title="Zmazať">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="code-row">
+            <div class="col-code">-5EUR</div>
+            <div class="col-desc">-5 € z ceny kurtu</div>
+            <div class="type-text type-amount">€ zľava</div>
+            <div class="small-toggle">Vypnutý</div>
+            <div class="row-icons">
+              <button class="icon-btn del-btn" title="Zmazať">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /codesTable -->
+
+      </div><!-- /card-body -->
+    </main>
+  </div><!-- /wrap -->
+
+  <script>
+    // helper: text + class pre "Typ" stĺpec
+    function getTypeDisplay(typeVal){
+      switch(typeVal){
+        case 'percent':      return {text:'Percento',    cls:'type-percent'};
+        case 'amount':       return {text:'€ zľava',     cls:'type-amount'};
+        case 'free_all':     return {text:'Zdarma',      cls:'type-free'};
+        case 'free_rackets': return {text:'Rakety',      cls:'type-rackets'};
+        case 'free_camera':  return {text:'Kamera',      cls:'type-camera'};
+        default:             return {text:'',            cls:''};
+      }
+    }
+
+    // MAGIC GENERATOR (ikonka v poli Kód)
+    const magicBtn = document.getElementById('magicGen');
+    magicBtn.addEventListener('click',()=>{
+      const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let c='';
+      for(let i=0;i<5;i++){
+        c+=chars[Math.floor(Math.random()*chars.length)];
+      }
+      document.getElementById('codeInput').value=c;
+    });
+
+    // PLATNOSŤ pills toggle
+    const onceBtn  = document.getElementById('onceBtn');
+    const unlimBtn = document.getElementById('unlimBtn');
+
+    function setValidity(which){
+      if(which==='once'){
+        onceBtn.classList.add('active');
+        unlimBtn.classList.remove('active');
+      }else{
+        unlimBtn.classList.add('active');
+        onceBtn.classList.remove('active');
+      }
+    }
+
+    onceBtn.addEventListener('click',()=>setValidity('once'));
+    unlimBtn.addEventListener('click',()=>setValidity('unlimited'));
+
+    // ADD CODE (Pridať kód) – pridáme NOVÝ RIADOK HORE
+    document.getElementById('saveBtn').addEventListener('click',()=>{
+      const codeVal  = document.getElementById('codeInput').value.trim() || '(bez názvu)';
+      const descVal  = document.getElementById('descInput').value.trim() || '';
+      const typeVal  = document.getElementById('typeInput').value;
+      const valueVal = document.getElementById('valueInput').value.trim();
+
+      // Platnosť: jednorazové / neobmedzené (iba FE info, nezobrazuje sa zatiaľ v tabuľke)
+      const validity = onceBtn.classList.contains('active') ? 'Jednorazové' : 'Neobmedzené';
+
+      // poskladáme fallback popis ak admin nič nenapísal
+      let finalDesc = descVal;
+      if(!finalDesc){
+        if(typeVal === 'percent' && valueVal){
+          finalDesc = `-${valueVal}% z ceny kurtu`;
+        } else if(typeVal === 'amount' && valueVal){
+          finalDesc = `-${valueVal} € z ceny kurtu`;
+        } else if(typeVal === 'free_all'){
+          finalDesc = 'Celé zdarma (0€)';
+        } else if(typeVal === 'free_rackets'){
+          finalDesc = 'Rakety zadarmo';
+        } else if(typeVal === 'free_camera'){
+          finalDesc = 'Kamera zadarmo';
+        }
+      }
+
+      const typeInfo = getTypeDisplay(typeVal);
+
+      // nový riadok, default stav Zapnutý (možes zmeniť tu)
+      const rowHtml = `
+        <div class="code-row">
+          <div class="col-code">${codeVal}</div>
+          <div class="col-desc">${finalDesc || ''}</div>
+          <div class="type-text ${typeInfo.cls}">${typeInfo.text}</div>
+          <div class="small-toggle active">Zapnutý</div>
+          <div class="row-icons">
+            <button class="icon-btn del-btn" title="Zmazať">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `;
+
+      // vložiť NAVRCHU do tabuľky, hneď za hlavičku
+      const table = document.getElementById('codesTable');
+      const headRow = table.querySelector('.codes-head-row');
+      if(headRow && headRow.nextSibling){
+        headRow.insertAdjacentHTML('afterend', rowHtml);
+      }else{
+        table.insertAdjacentHTML('beforeend', rowHtml);
+      }
+    });
+
+    // TABUĽKA: toggle stav + delete
+    document.addEventListener('click', e=>{
+      // toggle stav existujúceho kódu
+      const tog = e.target.closest('.small-toggle');
+      if(tog){
+        tog.classList.toggle('active');
+        tog.textContent = tog.classList.contains('active') ? 'Zapnutý' : 'Vypnutý';
+      }
+
+      // delete (smetný kôš)
+      const del = e.target.closest('.del-btn');
+      if(del){
+        const row = del.closest('.code-row');
+        if(row){
+          row.remove();
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

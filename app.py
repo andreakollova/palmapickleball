@@ -820,6 +820,45 @@ def sample_reservations():
         },
     ]
 
+def sample_codes():
+    """
+    Demo kupóny len pre frontend (admin_codes.html).
+    Neskôr ich budeme čítať z DB a posielať do šablóny,
+    ale teraz to šablóna ešte nepotrebuje.
+    """
+    return [
+        {
+            "code": "PALMA20",
+            "description": "-20% z ceny kurtu",
+            "type": "percent",         # percent / amount / free_all / free_rackets / free_camera
+            "active": True,
+        },
+        {
+            "code": "FREERACKET",
+            "description": "Rakety zadarmo k rezervácii",
+            "type": "free_rackets",
+            "active": True,
+        },
+        {
+            "code": "VIP100",
+            "description": "Celé zdarma (0€)",
+            "type": "free_all",
+            "active": False,
+        },
+        {
+            "code": "CAMERA",
+            "description": "Kamera zadarmo",
+            "type": "free_camera",
+            "active": True,
+        },
+        {
+            "code": "-5EUR",
+            "description": "-5 € z ceny kurtu",
+            "type": "amount",
+            "active": False,
+        },
+    ]
+
 @app.get("/admin/api/reservations")
 def admin_api_reservations():
     """Jednoduchý JSON feed pre admin UI (filter/stránkovanie/hlavička)."""
@@ -844,6 +883,10 @@ def admin_stats():
     }
     return render_template("admin_stats.html", stats=stats)
 
+@app.route("/admin/codes", methods=["GET"])
+def admin_codes():
+    # len FE demo – pošleme active="codes"
+    return render_template("admin_codes.html", active="codes")
 
 # =========================
 # Run
