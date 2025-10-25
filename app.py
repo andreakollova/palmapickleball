@@ -826,6 +826,24 @@ def admin_api_reservations():
     return jsonify({"ok": True, "reservations": sample_reservations()})
 # ===== /ADDED =====
 
+@app.route("/admin/stats")
+def admin_stats():
+    stats = {
+        "total_reservations": 142,
+        "total_visits": 328,
+        "total_users": 68,
+        "members": 24,
+        "non_members": 44,
+        "top_players": [
+            {"name": "Andrea Kollová", "visits": 52, "avatar": url_for('static', filename='images/profile1.png')},
+            {"name": "Juraj Kováč", "visits": 37, "avatar": url_for('static', filename='images/profile1.png')},
+            {"name": "Zuzana Mrázová", "visits": 33, "avatar": url_for('static', filename='images/profile1.png')},
+            {"name": "Peter Novák", "visits": 29, "avatar": url_for('static', filename='images/profile1.png')},
+            {"name": "Eva Kováčová", "visits": 27, "avatar": url_for('static', filename='images/profile1.png')},
+        ],
+    }
+    return render_template("admin_stats.html", stats=stats)
+
 
 # =========================
 # Run

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin – Štatistiky</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    :root {
+      --accent:#3a38d6;
+      --ink:#111827;
+      --muted:#667085;
+      --border:#e7e9ef;
+      --shadow:0 6px 24px rgba(16,24,40,.06);
+      --radius:12px;
+      --bg:#fff;
+      --sidebar:250px;
+      --trophy-bg:#fff8e1;
+      --trophy-border:#fde68a;
+      --trophy-ink:#d97706;
+    }
+
+    body {
+      margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      color:var(--ink);
+      background:var(--bg);
+    }
+
+    /* ===== Top bar (zdieľaný štýl) ===== */
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:40;
+      background:#fff;
+      border-bottom:1px solid var(--border);
+      padding:10px 16px;
+    }
+    .tb{
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:var(--ink);
+      text-decoration:none;
+    }
+    .brand img{height:30px}
+    .title-strong{
+      font-weight:800;
+      letter-spacing:.01em;
+    }
+    .btn-top{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:.48rem .9rem;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:#fff;
+      color:var(--ink);
+      text-decoration:none;
+      font-weight:500;
+      line-height:1.15;
+      cursor:pointer;
+    }
+    .btn-top:hover{filter:brightness(.98)}
+
+    /* ===== Page layout ===== */
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:18px 12px;
+      display:grid;
+      gap:18px;
+      grid-template-columns:var(--sidebar) 1fr;
+    }
+    @media(max-width:992px){
+      .wrap{grid-template-columns:1fr}
+    }
+
+    /* ===== Sidebar ===== */
+    .side{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+      box-shadow:var(--shadow);
+      padding:14px;
+      position:sticky;
+      top:72px;
+      height:fit-content;
+    }
+    .nav{
+      list-style:none;
+      margin:0;
+      padding:0;
+    }
+    .nav a{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:10px;
+      text-decoration:none;
+      color:var(--ink);
+      border:1px solid transparent;
+    }
+    .nav a:hover{
+      background:#fafbff;
+      border-color:#eef0f5;
+    }
+    .nav a.active{
+      background:#f3f4ff;
+      border-color:#dfe1ff;
+      color:#2b2acb;
+    }
+
+    /* ===== Main stats card ===== */
+    .stats-card{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+
+    .stats-head{
+      border-bottom:1px solid var(--border);
+      padding:16px;
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:12px 16px;
+    }
+    .stats-head-left{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:flex-start;
+      gap:8px 16px;
+      flex:1 1 auto;
+      min-width:200px;
+    }
+    .stats-title{
+      font-size:1.35rem;
+      font-weight:550;
+      line-height:1.4;
+      color:var(--ink);
+    }
+
+    .range-pills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .range-btn{
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius:10px;
+      padding:6px 12px;
+      font-size:0.9rem;
+      font-weight:500;
+      line-height:1.2;
+      color:var(--ink);
+      cursor:pointer;
+      transition:background .15s;
+    }
+    .range-btn.active{
+      background:#f3f4f6;
+      border-color:#d1d5db;
+    }
+
+    .date-range-label{
+      font-size:.8rem;
+      line-height:1.3;
+      color:var(--muted);
+      font-weight:500;
+      white-space:nowrap;
+    }
+
+    /* ===== Body: 2 columns ===== */
+    .stats-body{
+      padding:20px;
+      display:grid;
+      grid-template-columns:2fr 1fr;
+      gap:20px;
+    }
+    @media(max-width:960px){
+      .stats-body{
+        grid-template-columns:1fr;
+      }
+    }
+
+    /* ===== Metrics grid (left col) ===== */
+    .metrics{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:16px;
+      align-content:start;
+    }
+
+    .metric-card{
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      background:#fff;
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      min-height:120px;
+      transition:box-shadow .15s;
+    }
+    .metric-card:hover{
+      box-shadow:0 4px 14px rgba(0,0,0,.04);
+    }
+
+    .metric-label{
+      font-weight:600;
+      font-size:1rem;
+      color:var(--ink);
+      line-height:1.3;
+      margin-bottom:4px;
+    }
+    .metric-sub{
+      font-size:.85rem;
+      color:var(--muted);
+      line-height:1.3;
+      margin-bottom:10px;
+    }
+    .metric-value{
+      font-size:2rem;
+      font-weight:650;
+      color:var(--ink);
+      line-height:1.1;
+    }
+
+    /* ===== Special split card: Clenovia / Neclenovia ===== */
+    .metric-split{
+      display:flex;
+      flex-direction:column;
+    }
+    .metric-split-header{
+      font-weight:600;
+      font-size:1rem;
+      color:var(--ink);
+      line-height:1.3;
+      margin-bottom:12px;
+    }
+    .metric-split-body{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    .split-col{
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      min-height:80px;
+      justify-content:space-between;
+    }
+    .split-col-label{
+      font-size:.8rem;
+      font-weight:500;
+      color:var(--muted);
+      line-height:1.3;
+      margin-bottom:6px;
+    }
+    .split-col-value{
+      font-size:1.6rem;
+      font-weight:650;
+      color:var(--ink);
+      line-height:1.2;
+    }
+
+    /* ===== Right column: Najaktívnejší hráči ===== */
+    .players-card{
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      background:#fff;
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      min-height:280px;
+      height:100%;
+    }
+
+    .players-head{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-weight:600;
+      font-size:.95rem; /* jemne menšie */
+      line-height:1.3;
+      color:var(--ink);
+      margin-bottom:12px; /* menej vzduchu */
+    }
+    .trophy{
+      width:26px;
+      height:26px;
+      border-radius:8px;
+      background:var(--trophy-bg);
+      border:1px solid var(--trophy-border);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--trophy-ink);
+      font-size:.8rem;
+    }
+
+    .player-row{
+      display:grid;
+      grid-template-columns:auto auto 1fr;
+      align-items:center;
+      gap:10px;
+      padding:8px 0;         /* menší vertical spacing */
+      border-top:1px solid var(--border);
+    }
+    .player-row:first-of-type{
+      border-top:0;
+      padding-top:0;
+    }
+
+    .player-rank{
+      width:30px;
+      height:30px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:600;
+      font-size:.8rem;
+      color:var(--ink);
+      background:#fff;
+    }
+
+    .player-ava{
+      width:40px;
+      height:40px;
+      border-radius:999px;
+      border:1px solid #eef0f5;
+      object-fit:cover;
+      background:#f6f7fb;
+    }
+
+    .player-info{
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+    }
+    .player-name{
+      font-size:.9rem;
+      font-weight:600;
+      color:var(--ink);
+      line-height:1.3;
+      word-break:break-word;
+    }
+    .player-visits{
+      font-size:.8rem;
+      color:var(--muted);
+      line-height:1.3;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Top nav ===== -->
+  <header class="topbar">
+    <div class="tb">
+      <a class="brand" href="#">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Palma Pickleball">
+        <span class="title-strong">Palma Admin</span>
+      </a>
+      <div class="tb-actions">
+        <a class="btn-top" href="{{ url_for('index') }}">Domov</a>
+        <a class="btn-top" href="/adminpanel">Odhlásiť</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <!-- Sidebar -->
+    {% include "partials/admin_sidebar.html" %}
+
+    <!-- ===== Main stats card ===== -->
+    <main class="stats-card">
+      <!-- header row -->
+      <div class="stats-head">
+        <div class="stats-head-left">
+          <div class="stats-title">Štatistiky</div>
+
+          <div class="range-pills" id="rangeFilters">
+            <button class="range-btn" data-range="7d">7 dní</button>
+            <button class="range-btn" data-range="30d">30 dní</button>
+            <button class="range-btn" data-range="3m">3 mesiace</button>
+            <button class="range-btn" data-range="6m">6 mesiacov</button>
+            <button class="range-btn" data-range="12m">12 mesiacov</button>
+            <button class="range-btn active" data-range="all">Spolu</button>
+          </div>
+        </div>
+
+        <div class="date-range-label" id="currentRangeLabel">
+          {{ stats.range_label }}
+        </div>
+      </div>
+
+      <!-- body -->
+      <div class="stats-body">
+        <!-- left metrics grid -->
+        <section class="metrics">
+          <!-- 1: rezervácie -->
+          <div class="metric-card">
+            <div>
+              <div class="metric-label">Počet rezervácií kurtov</div>
+              <div class="metric-sub">Za zvolené obdobie</div>
+            </div>
+            <div class="metric-value" id="val-reservations">{{ stats.total_reservations }}</div>
+          </div>
+
+          <!-- 2: návštevy -->
+          <div class="metric-card">
+            <div>
+              <div class="metric-label">Počet návštev</div>
+              <div class="metric-sub">Fyzické príchody</div>
+            </div>
+            <div class="metric-value" id="val-visits">{{ stats.total_visits }}</div>
+          </div>
+
+          <!-- 3: používatelia -->
+          <div class="metric-card">
+            <div>
+              <div class="metric-label">Počet používateľov</div>
+              <div class="metric-sub">Registrované účty</div>
+            </div>
+            <div class="metric-value" id="val-users">{{ stats.total_users }}</div>
+          </div>
+
+          <!-- 4: členovia / nečlenovia spolu v jednej karte -->
+          <div class="metric-card">
+            <div class="metric-split">
+              <div class="metric-split-header">
+                Členovia / Nečlenovia
+              </div>
+              <div class="metric-split-body">
+                <div class="split-col">
+                  <div class="split-col-label">Členovia</div>
+                  <div class="split-col-value" id="val-members">{{ stats.members }}</div>
+                </div>
+                <div class="split-col">
+                  <div class="split-col-label">Nečlenovia</div>
+                  <div class="split-col-value" id="val-nonmembers">{{ stats.non_members }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- right: najaktívnejší hráči -->
+        <aside class="players-card">
+          <div class="players-head">
+            <div class="trophy"><i class="fa-solid fa-trophy"></i></div>
+            <span>Najaktívnejší hráči</span>
+          </div>
+
+          {% for p in stats.top_players %}
+          <div class="player-row">
+            <div class="player-rank">{{ loop.index }}</div>
+            <img class="player-ava"
+                 src="{{ p.avatar or url_for('static', filename='images/profile1.png') }}"
+                 alt="avatar">
+            <div class="player-info">
+              <div class="player-name">{{ p.name }}</div>
+              <div class="player-visits">{{ p.visits }} návštev</div>
+            </div>
+          </div>
+          {% endfor %}
+        </aside>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Demo dáta pre rozsahy
+    const rangesData = {
+      "7d": {
+        total_reservations: 24,
+        total_visits: 61,
+        total_users: 8,
+        members: 4,
+        non_members: 4,
+        range_label: "18.10 – 25.10.2025"
+      },
+      "30d": {
+        total_reservations: 88,
+        total_visits: 210,
+        total_users: 22,
+        members: 10,
+        non_members: 12,
+        range_label: "25.09 – 25.10.2025"
+      },
+      "3m": {
+        total_reservations: 230,
+        total_visits: 620,
+        total_users: 48,
+        members: 19,
+        non_members: 29,
+        range_label: "25.07 – 25.10.2025"
+      },
+      "6m": {
+        total_reservations: 420,
+        total_visits: 1110,
+        total_users: 59,
+        members: 23,
+        non_members: 36,
+        range_label: "25.04 – 25.10.2025"
+      },
+      "12m": {
+        total_reservations: 780,
+        total_visits: 2130,
+        total_users: 68,
+        members: 24,
+        non_members: 44,
+        range_label: "25.10.2024 – 25.10.2025"
+      },
+      "all": {
+        total_reservations: {{ stats.total_reservations|tojson }},
+        total_visits: {{ stats.total_visits|tojson }},
+        total_users: {{ stats.total_users|tojson }},
+        members: {{ stats.members|tojson }},
+        non_members: {{ stats.non_members|tojson }},
+        range_label: {{ stats.range_label|default('')|tojson }}
+      }
+    };
+
+    const rangeBtns    = document.querySelectorAll('.range-btn');
+    const valReservations = document.getElementById('val-reservations');
+    const valVisits       = document.getElementById('val-visits');
+    const valUsers        = document.getElementById('val-users');
+    const valMembers      = document.getElementById('val-members');
+    const valNonMembers   = document.getElementById('val-nonmembers');
+    const rangeLabelEl    = document.getElementById('currentRangeLabel');
+
+    function applyRange(data){
+      valReservations.textContent = data.total_reservations;
+      valVisits.textContent       = data.total_visits;
+      valUsers.textContent        = data.total_users;
+      valMembers.textContent      = data.members;
+      valNonMembers.textContent   = data.non_members;
+      rangeLabelEl.textContent    = data.range_label;
+    }
+
+    rangeBtns.forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        // vizuálna active trieda
+        rangeBtns.forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const r = btn.dataset.range;
+        const d = rangesData[r];
+        if(d){ applyRange(d); }
+
+        // poznámka: backend verzia by tu mohla zavolať fetch('/admin/statistiky?range=' + r)
+        // a potom doplniť aj top hráčov podľa obdobia.
+      });
+    });
+  </script>
+</body>
+</html>
