@@ -258,19 +258,27 @@
       border-bottom-right-radius:10px;
     }
 
-    /* select pre typ zľavy */
     .select-input{
       width:100%;
-      box-sizing:border-box;
       border:1px solid var(--border);
       border-radius:10px;
-      padding:10px 12px;
+      padding:10px 32px 10px 12px; /* viac miesta vpravo pre šípku */
       font-size:.9rem;
       line-height:1.3;
       font-family:inherit;
       color:var(--ink);
       background:#fff;
+
+      /* custom caret (dvojitá šípka ala < >) */
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0 L5 6 L10 0 Z' fill='%23667085'/></svg>");
+      background-repeat: no-repeat;
+      background-position: calc(100% - 14px) center;
+      background-size: 8px 5px;
+
       appearance:none;
+      -webkit-appearance:none;
+      -moz-appearance:none;
+      cursor:pointer;
     }
 
     /* Hodnota kratšia placeholder */
@@ -338,6 +346,7 @@
       align-items:center;
       gap:8px;
       white-space:nowrap;
+      margin-left: 15px;
     }
     .btn-cancel{
       background:#fff;
@@ -363,7 +372,7 @@
       background:#fafafa;
       border-bottom:1px solid var(--border);
       display:grid;
-      grid-template-columns:140px 1fr 110px 100px 40px;
+      grid-template-columns:140px 1fr 110px 120px 100px 40px;
       gap:12px;
       padding:10px 12px;
       font-size:.8rem;
@@ -373,7 +382,7 @@
 
     .code-row{
       display:grid;
-      grid-template-columns:140px 1fr 110px 100px 40px;
+      grid-template-columns:140px 1fr 110px 120px 100px 40px;
       gap:12px;
       align-items:center;
       padding:14px 12px;
@@ -612,7 +621,7 @@
 
             <!-- Typ zľavy + Hodnota -->
             <div class="form-row-inline">
-              <div class="form-group" style="flex:1 1 auto; min-width:180px;">
+              <div class="form-group" style="flex:1 1 auto;">
                 <div class="label-line">Typ zľavy</div>
                 <select id="typeInput" class="select-input">
                   <option value="percent">Percentuálna zľava (%)</option>
@@ -657,9 +666,6 @@
                     Pridať kód
                   </button>
 
-                  <button type="button" class="btn-cancel">
-                    Zrušiť
-                  </button>
                 </div>
               </div>
             </div>
@@ -675,70 +681,39 @@
             <div>Kód</div>
             <div>Popis</div>
             <div>Typ</div>
+            <div>Platnosť</div>
             <div>Stav</div>
             <div style="text-align:right;">Akcia</div>
           </div>
 
-          <!-- existujúce riadky (nové pôjdu HORE) -->
-          <div class="code-row">
-            <div class="col-code">PALMA20</div>
-            <div class="col-desc">-20% z ceny kurtu</div>
-            <div class="type-text type-percent">Percento</div>
-            <div class="small-toggle active">Zapnutý</div>
-            <div class="row-icons">
-              <button class="icon-btn del-btn" title="Zmazať">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </div>
-          </div>
+          {% for code in codes %}
+            <div class="code-row">
+              <!-- Kód -->
+              <div class="col-code">{{ code.code }}</div>
 
-          <div class="code-row">
-            <div class="col-code">FREERACKET</div>
-            <div class="col-desc">Rakety zadarmo</div>
-            <div class="type-text type-rackets">Rakety</div>
-            <div class="small-toggle active">Zapnutý</div>
-            <div class="row-icons">
-              <button class="icon-btn del-btn" title="Zmazať">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </div>
-          </div>
+              <!-- Popis -->
+              <div class="col-desc">{{ code.description }}</div>
 
-          <div class="code-row">
-            <div class="col-code">VIP100</div>
-            <div class="col-desc">Celé zdarma (0€)</div>
-            <div class="type-text type-free">Zdarma</div>
-            <div class="small-toggle">Vypnutý</div>
-            <div class="row-icons">
-              <button class="icon-btn del-btn" title="Zmazať">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </div>
-          </div>
+              <!-- Typ (with color class) -->
+              <div class="type-text {{ code.type_class }}">{{ code.type_label }}</div>
 
-          <div class="code-row">
-            <div class="col-code">CAMERA</div>
-            <div class="col-desc">Kamera zadarmo</div>
-            <div class="type-text type-camera">Kamera</div>
-            <div class="small-toggle active">Zapnutý</div>
-            <div class="row-icons">
-              <button class="icon-btn del-btn" title="Zmazať">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </div>
-          </div>
+              <!-- Platnosť (new column) -->
+              <div class="col-validity">{{ code.validity_label }}</div>
 
-          <div class="code-row">
-            <div class="col-code">-5EUR</div>
-            <div class="col-desc">-5 € z ceny kurtu</div>
-            <div class="type-text type-amount">€ zľava</div>
-            <div class="small-toggle">Vypnutý</div>
-            <div class="row-icons">
-              <button class="icon-btn del-btn" title="Zmazať">
-                <i class="fa-solid fa-trash"></i>
-              </button>
+              <!-- Stav toggle -->
+              <div class="small-toggle {% if code.active %}active{% endif %}">
+                {{ "Zapnutý" if code.active else "Vypnutý" }}
+              </div>
+
+              <!-- Akcia / trash -->
+              <div class="row-icons">
+                <button class="icon-btn del-btn" title="Zmazať">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
             </div>
-          </div>
+          {% endfor %}
+
 
         </div><!-- /codesTable -->
 
@@ -821,6 +796,7 @@
           <div class="col-code">${codeVal}</div>
           <div class="col-desc">${finalDesc || ''}</div>
           <div class="type-text ${typeInfo.cls}">${typeInfo.text}</div>
+          <div class="col-validity">${validity}</div>
           <div class="small-toggle active">Zapnutý</div>
           <div class="row-icons">
             <button class="icon-btn del-btn" title="Zmazať">

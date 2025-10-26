@@ -830,31 +830,36 @@ def sample_codes():
         {
             "code": "PALMA20",
             "description": "-20% z ceny kurtu",
-            "type": "percent",         # percent / amount / free_all / free_rackets / free_camera
+            "type": "percent",
+            "validity": "once",  # ✅ new field
             "active": True,
         },
         {
             "code": "FREERACKET",
             "description": "Rakety zadarmo k rezervácii",
             "type": "free_rackets",
+            "validity": "unlimited",  # ✅
             "active": True,
         },
         {
             "code": "VIP100",
             "description": "Celé zdarma (0€)",
             "type": "free_all",
+            "validity": "once",  # ✅
             "active": False,
         },
         {
             "code": "CAMERA",
             "description": "Kamera zadarmo",
             "type": "free_camera",
+            "validity": "unlimited",  # ✅
             "active": True,
         },
         {
             "code": "-5EUR",
             "description": "-5 € z ceny kurtu",
             "type": "amount",
+            "validity": "once",  # ✅
             "active": False,
         },
     ]
@@ -885,9 +890,31 @@ def admin_stats():
 
 @app.route("/admin/codes", methods=["GET"])
 def admin_codes():
-    # len FE demo – pošleme active="codes"
-    return render_template("admin_codes.html", active="codes")
+    # get the demo codes
+    codes = sample_codes()
 
+    # add human readable validity for each code
+    # "once" -> "Jednorazové", "unlimited" -> "Neobmedzené"
+    for c in codes:
+        c["validity_label"] = "Jednorazové" if c["validity"] == "once" else "Neobmedzené"
+
+        # also map type into a nice label + CSS class so the table looks like before
+        type_map = {
+            "percent":      ("Percento",      "type-percent"),
+            "amount":       ("€ zľava",       "type-amount"),
+            "free_all":     ("Zdarma",        "type-free"),
+            "free_rackets": ("Rakety",        "type-rackets"),
+            "free_camera":  ("Kamera",        "type-camera"),
+        }
+        nice_text, nice_cls = type_map.get(c["type"], ("", ""))
+        c["type_label"] = nice_text
+        c["type_class"] = nice_cls
+
+    return render_template(
+        "admin_codes.html",
+        active="codes",
+        codes=codes,
+    )
 # =========================
 # Run
 # =========================r
