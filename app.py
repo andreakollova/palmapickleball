@@ -915,6 +915,43 @@ def admin_codes():
         active="codes",
         codes=codes,
     )
+
+# -------- VOLITEĽNÉ API STUBY (budúcnosť) --------
+# from flask import request, jsonify
+
+# jednoduchý in-memory store (len na testy / reštartom sa vymaže)
+_SHARED = {}  # { date: { court_index: { slot: [names] } } }
+
+def _ensure(date, ci, slot):
+    _SHARED.setdefault(date, {}).setdefault(int(ci), {}).setdefault(slot, [])
+
+@app.post("/api/sharedplay/join")
+def api_shared_join():
+    data = request.get_json(silent=True) or {}
+    date = data.get("date")
+    ci   = int(data.get("court_index", 0))
+    slot = data.get("slot")
+    name = (data.get("name") or "").strip()
+    if not (date and slot and name):
+        return jsonify({"ok": False, "msg": "Chýbajúce údaje"}), 400
+    _ensure(date, ci, slot)
+    players = _SHARED[date][ci][slot]
+    if name.lower() in [p.lower() for p in players]:
+        return jsonify({"ok": True, "players": players})
+    if len(players) >= 4:
+        return jsonify({"ok": False, "msg": "Skupina je plná"}), 409
+    players.append(name)
+    return jsonify({"ok": True, "players": players})
+
+@app.route("/join", methods=["GET"])
+def join_shared():
+    # voliteľne môžeš doplniť user info z reálneho loginu
+    return render_template("join_shared.html",
+                           user_authenticated=False,   # True keď bude človek prihlásený
+                           user_name="Andrea",
+                           user_photo=url_for('static', filename='images/profile1.png'),
+                           user_level="Mierne pokročilý")
+
 # =========================
 # Run
 # =========================r

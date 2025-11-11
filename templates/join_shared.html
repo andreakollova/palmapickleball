@@ -1,0 +1,511 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+  :root{
+    --ink:#0f172a; --muted:#667085; --border:#e7e9ef; --soft:#f6f7fb;
+    --accent:#3a38d6; --accent-2:#5855ff; --ok:#16a34a; --danger:#b91c1c;
+    --card:#fff; --shadow:0 10px 30px rgba(17,24,39,.08); --radius:14px;
+    --ring:#7c3aed; --ring2:#06b6d4; --ring3:#f59e0b; --ring4:#22c55e;
+  }
+
+  .wrap-join{max-width:1100px;margin:20px auto 64px;padding:0 12px}
+
+  /* header */
+  .head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
+  .h-title{font-weight:800;letter-spacing:-.01em;font-size:1.35rem}
+  .h-sub{color:var(--muted);font-size:.95rem}
+
+  /* day controls (sticky) */
+  .filters{position:sticky;top:76px;z-index:6;background:#fff;border:1px solid var(--border);padding:8px 10px;border-radius:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;margin:8px 0 14px}
+  .btn-ghost{border:1px solid var(--border);background:#fff;color:#111;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .inp-date{border:1px solid var(--border);background:#fff;border-radius:10px;padding:7px 10px;font:inherit}
+  .legend{margin-left:auto;color:#98a2b3;font-size:.88rem;display:flex;gap:12px;align-items:center}
+  .dot{width:9px;height:9px;border-radius:999px;display:inline-block}
+  .d-open{background:#16a34a}.d-busy{background:#d1d5db}.d-full{background:#b91c1c}
+
+  /* ===================== ACTIVE STRIP ===================== */
+  .strip{
+    border:1px solid #e6e7fb;border-radius:16px;box-shadow:var(--shadow);
+    background:linear-gradient(180deg, rgba(58,56,214,.10), rgba(58,56,214,.05));
+    overflow:hidden;margin-bottom:18px
+  }
+  .strip-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:rgba(255,255,255,.65);backdrop-filter:blur(8px);border-bottom:1px solid #ecebff}
+  .strip-tt{font-weight:800}
+  .act-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;padding:12px}
+
+  .act-card{border:1px solid #e6e7fb;background:#fff;border-radius:12px;box-shadow:0 6px 16px rgba(16,24,40,.06);padding:10px}
+  .act-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .act-tt{font-weight:800}
+  .act-meta{display:flex;gap:8px;align-items:center;color:#6b7280;font-size:.88rem}
+  .pill{border:1px solid var(--border);background:var(--soft);border-radius:999px;padding:3px 8px;font-size:.78rem;color:#475467}
+  .btn{border:1px solid var(--border);background:#fff;border-radius:10px;padding:6px 9px;font-weight:700;cursor:pointer;font-size:.9rem}
+  .btn.sm{padding:5px 8px;font-size:.85rem}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn[disabled]{opacity:.55;cursor:not-allowed}
+
+  /* ===== court image with quarters ===== */
+  .court{position:relative;border-radius:12px;overflow:hidden;border:1px solid #eceff4;background:#f8fafc;height:170px}
+  .court img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:contrast(1.06)}
+  .q{position:absolute;display:flex;align-items:center;justify-content:center;transition:background .12s ease, box-shadow .12s ease, transform .04s ease;cursor:pointer;background:transparent}
+  .q:hover{background:rgba(58,56,214,.08)}
+  .q.muted{pointer-events:none;background:rgba(0,0,0,.06)}
+  .q.selected{background:rgba(58,56,214,.12);box-shadow:inset 0 0 0 2px rgba(88,85,255,.55)}
+  .q1{left:4%; top:8%; width:43%; height:40%}
+  .q2{left:4%; bottom:8%; width:43%; height:40%}
+  .q3{right:4%; top:8%; width:43%; height:40%}
+  .q4{right:4%; bottom:8%; width:43%; height:40%}
+
+  /* vivid circular avatars with colored rings */
+  .ring{--c:var(--ring); position:relative; width:46px;height:46px;display:grid;place-items:center}
+  .ring::before{content:""; position:absolute; inset:-2px; border-radius:999px; background:
+    radial-gradient(circle at 30% 30%, var(--c),transparent 60%),
+    radial-gradient(circle at 70% 70%, var(--ring2),transparent 60%),
+    radial-gradient(circle at 20% 80%, var(--ring3),transparent 60%);}
+  .ring img{width:42px;height:42px;border-radius:999px;border:2px solid #fff;object-fit:cover;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+  .ring.sm{width:30px;height:30px}
+  .ring.sm img{width:26px;height:26px}
+
+  .slot-full{filter:grayscale(.25) contrast(.95) brightness(.95);opacity:.85}
+
+  /* “plus” badge for empty quarter */
+  .q .plus{width:28px;height:28px;border-radius:10px;background:rgba(255,255,255,.9);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:800;color:#5855ff;box-shadow:0 4px 12px rgba(16,24,40,.12)}
+  .q:hover .plus{transform:scale(1.04)}
+
+  /* ===================== BOTTOM: CREATE SECTION ===================== */
+  .boards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:980px){ .boards{grid-template-columns:1fr} }
+  .board{display:flex;flex-direction:column;gap:10px}
+  .board-head{border:1px solid var(--border);background:linear-gradient(180deg,#fff,#fbfbff);border-radius:12px;box-shadow:var(--shadow);padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+  .b-title{display:flex;align-items:center;gap:10px;font-weight:800}
+  .b-pill{border:1px solid #e4e7ef;background:var(--soft);border-radius:999px;padding:5px 10px;color:#2b2acb}
+
+  /* redesigned time cards */
+  .slot-panel{border:1px solid var(--border);background:#fff;border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+  .slot-rail{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;padding:10px}
+  .tcard{
+    border:1px solid var(--border);border-radius:12px;background:#fff;padding:8px 10px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;
+    transition:transform .08s ease,border-color .12s ease, box-shadow .12s ease;
+  }
+  .tcard:hover{transform:translateY(-1px);border-color:#dfe3ea;box-shadow:0 8px 20px rgba(16,24,40,.06)}
+  .t-left{display:grid;place-items:center}
+  .time{font-weight:800;letter-spacing:.01em}
+  .status{display:inline-flex;align-items:center;gap:6px;font-size:.84rem;color:#6b7280}
+  .dot-sm{width:8px;height:8px;border-radius:999px;display:inline-block}
+  .btn-mini{border:1px solid var(--border);background:#fff;border-radius:10px;padding:5px 8px;font-weight:700;cursor:pointer;font-size:.85rem}
+  .btn-mini.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tcard.blocked{opacity:.55;pointer-events:none}
+  .tcard.full{opacity:.7}
+  .tcard.past{filter:grayscale(.3);opacity:.6;pointer-events:none}
+  .badge-small{border:1px solid #e6e7fb;background:#f6f5ff;color:#2b2acb;border-radius:999px;padding:2px 6px;font-size:.75rem;font-weight:700}
+
+  /* modal for picking quarter */
+  .modal-back{position:fixed;inset:0;background:rgba(0,0,0,.22);display:none;align-items:center;justify-content:center;z-index:40}
+  .modal{width:min(720px,92vw);background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.25);overflow:hidden}
+  .m-top{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border)}
+  .m-tt{font-weight:800}
+  .m-body{padding:14px}
+  .m-actions{display:flex;justify-content:flex-end;padding:10px 14px;border-top:1px solid var(--border);gap:8px}
+  .x{border:1px solid var(--border);background:#fff;border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center}
+
+  /* tooltip + toast */
+  .tooltip-card{position:fixed;z-index:60;pointer-events:none;opacity:0;transform:translateY(4px);
+    transition:opacity .12s ease, transform .12s ease;background:#111;color:#fff;border-radius:12px;padding:8px 10px;min-width:180px;box-shadow:0 12px 28px rgba(0,0,0,.2)}
+  .tooltip-head{display:flex;gap:10px;align-items:center;margin-bottom:4px}
+  .tooltip-head img{width:36px;height:36px;border-radius:999px;object-fit:cover;border:2px solid #1f2937}
+  .tooltip-name{font-weight:700}
+  .tooltip-level{font-size:.82rem;color:#cbd5e1}
+  .toast-mini{position:fixed;right:16px;bottom:16px;background:#111;color:#fff;padding:.7rem 1rem;border-radius:12px;box-shadow:0 12px 28px rgba(0,0,0,.18);opacity:0;transform:translateY(8px);transition:.18s ease;z-index:70}
+  .toast-mini.show{opacity:1;transform:translateY(0)}
+</style>
+
+<div class="wrap-join">
+  <div class="head">
+    <div>
+      <div class="h-title">Pridaj sa do hry</div>
+      <div class="h-sub">Najskôr rozbehnuté partičky, nižšie rýchle založenie podľa času.</div>
+    </div>
+  </div>
+
+  <!-- controls -->
+  <div class="filters">
+    <button class="btn-ghost" id="prevDay">‹</button>
+    <input class="inp-date" type="date" id="datePicker">
+    <button class="btn-ghost" id="nextDay">›</button>
+    <div class="legend">
+      <span><span class="dot d-open"></span> voľné</span>
+      <span><span class="dot d-busy"></span> obsadené</span>
+      <span><span class="dot d-full"></span> plné</span>
+    </div>
+  </div>
+
+  <!-- ACTIVE GROUPS -->
+  <section class="strip">
+    <div class="strip-head">
+      <div class="strip-tt">Aktívne partičky (klikni na voľnú štvrtinu)</div>
+    </div>
+    <div class="act-grid" id="activeGrid"><!-- JS --></div>
+  </section>
+
+  <!-- CREATE NEW -->
+  <section class="boards">
+    <!-- court 1 -->
+    <div class="board">
+      <div class="board-head">
+        <div class="b-title"><span class="b-pill">Kurt 1</span><span>Vytvor partičku</span></div>
+      </div>
+
+      <div class="slot-panel">
+        <div class="slot-rail" id="rail1"><!-- JS --></div>
+      </div>
+    </div>
+
+    <!-- court 2 -->
+    <div class="board">
+      <div class="board-head">
+        <div class="b-title"><span class="b-pill">Kurt 2</span><span>Vytvor partičku</span></div>
+      </div>
+
+      <div class="slot-panel">
+        <div class="slot-rail" id="rail2"><!-- JS --></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- modal: pick quarter -->
+<div class="modal-back" id="modalBack" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="m-top">
+      <div class="m-tt" id="mTitle">Vyber si štvrtinu</div>
+      <button class="x" id="mClose" aria-label="Zavrieť"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="m-body">
+      <div class="court" id="modalCourt" style="height:220px">
+        <img src="{{ url_for('static', filename='images/kurt.png') }}" alt="Kurt">
+        <div class="q q1" data-q="Q1"><span class="plus">+</span></div>
+        <div class="q q2" data-q="Q2"><span class="plus">+</span></div>
+        <div class="q q3" data-q="Q3"><span class="plus">+</span></div>
+        <div class="q q4" data-q="Q4"><span class="plus">+</span></div>
+      </div>
+    </div>
+    <div class="m-actions">
+      <button class="btn sm" id="mCancel">Zrušiť</button>
+    </div>
+  </div>
+</div>
+
+<!-- tooltip + toast -->
+<div id="tooltip" class="tooltip-card" role="dialog" aria-hidden="true"></div>
+<div id="toast" class="toast-mini">Uložené</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  /* ---------- current user (assume logged in) ---------- */
+  const CURRENT_USER = {
+    loggedIn: true,
+    name: {{ (user_name|default('Andrea Kollová'))|tojson }},
+    photo: {{ (user_photo|default(url_for('static', filename='images/profile1.png')))|tojson }},
+    level: {{ (user_level|default('Stredne pokročilý'))|tojson }},
+  };
+
+  /* ---------- constants ---------- */
+  const COURTS = ["Kurt 1","Kurt 2"];
+  const SLOTS = [
+    "08:00 – 09:00","09:00 – 10:00","10:00 – 11:00","11:00 – 12:00",
+    "12:00 – 13:00","13:00 – 14:00","14:00 – 15:00","15:00 – 16:00",
+    "16:00 – 17:00","17:00 – 18:00","18:00 – 19:00","19:00 – 20:00","20:00 – 21:00"
+  ];
+  const QUARTERS = ["Q1","Q2","Q3","Q4"];       // 1 person per quarter
+  const MAX_TOTAL = 4;
+
+  const samplePhoto = "{{ url_for('static', filename='images/profile1.png') }}";
+  const DEMO = [
+    { name:"Michaela Hrúzová", level:"Mierne pokročilý", photo:samplePhoto, hue:"--ring:#7c3aed" },
+    { name:"Juraj Kováč", level:"Profesionál", photo:samplePhoto, hue:"--ring:#22c55e" },
+    { name:"Kristína Holá", level:"Stredne pokročilý", photo:samplePhoto, hue:"--ring:#06b6d4" },
+    { name:"Peter Novák", level:"Začiatočník", photo:samplePhoto, hue:"--ring:#f59e0b" },
+    { name:"Zuzana Mrázová", level:"Stredne pokročilý", photo:samplePhoto, hue:"--ring:#ef4444" },
+    { name:"Samuel Duda", level:"Mierne pokročilý", photo:samplePhoto, hue:"--ring:#3b82f6" },
+  ];
+
+  /* ---------- state ---------- */
+  const state = {};                    // per date -> per court -> per slot -> {Q1:[p?],...}
+  function day(d){ return (state[d]||(state[d]={})); }
+  function court(d,ci){ const dd=day(d); return (dd[ci]||(dd[ci]={})); }
+  function slotObj(d,ci,slot){ const c=court(d,ci); return (c[slot]||(c[slot]={Q1:[],Q2:[],Q3:[],Q4:[]})); }
+  function totalCount(s){ return QUARTERS.reduce((n,q)=>n+(s[q]?.length||0),0); }
+  function isMe(p){ return (p.name||"").toLowerCase()===(CURRENT_USER.name||"").toLowerCase(); }
+  function meInside(s){ return QUARTERS.some(q => (s[q]||[]).some(isMe)); }
+  function removeMe(s){ QUARTERS.forEach(q=>{ s[q]=(s[q]||[]).filter(p=>!isMe(p)); }); }
+
+  /* ---------- availability (booked) ---------- */
+  let busy = { "1": [], "2": [], blocked: [] };
+  async function loadBusy(date){
+    busy = { "1": [], "2": [], blocked: [] };
+    try{
+      const r = await fetch(`/api/availability?date=${encodeURIComponent(date)}`);
+      const j = await r.json();
+      if(j && j.ok){
+        busy["1"] = j.courts["1"] || [];
+        busy["2"] = j.courts["2"] || [];
+        busy.blocked = j.blocked || [];
+      }
+    }catch(e){ console.warn(e); }
+  }
+  function startTime(slot){ return (slot||"").slice(0,5); }
+  function endTime(slot){ return (slot||"").slice(8,13); }
+  function booked(ci, slot){
+    const key=(ci+1).toString(); const t=startTime(slot);
+    return (busy[key]||[]).includes(t) || (busy.blocked||[]).includes(t);
+  }
+
+  /* ---------- past / future detection for today ---------- */
+  function isToday(iso){ const t=new Date(); return iso===t.toISOString().slice(0,10); }
+  function isPastSlot(iso, slot){
+    if(!isToday(iso)) return false;
+    const [h,m]=endTime(slot).split(':').map(Number);
+    const d=new Date(); d.setHours(h,m,0,0);
+    return (new Date())>d;
+  }
+
+  /* ---------- seed demo so strip shows both future & past ---------- */
+  function seed(d){
+    if(state[d]) return;
+    // Future (evening)
+    let s = slotObj(d,0,"18:00 – 19:00"); s.Q1=[{...DEMO[0]}]; s.Q3=[{...DEMO[1]}];
+    s = slotObj(d,1,"19:00 – 20:00"); s.Q2=[{...DEMO[2]}]; s.Q4=[{...DEMO[3]}];
+    s = slotObj(d,0,"10:00 – 11:00"); s.Q4=[{...DEMO[4]}];           // mid day
+    // Past (morning)
+    s = slotObj(d,1,"09:00 – 10:00"); s.Q1=[{...DEMO[5]}];
+  }
+
+  /* ---------- DOM refs ---------- */
+  const $=s=>document.querySelector(s);
+  const actGrid=$("#activeGrid");
+  const rail1=$("#rail1"), rail2=$("#rail2");
+  const dp=$("#datePicker"), prev=$("#prevDay"), next=$("#nextDay");
+  const tip=$("#tooltip"); const toast=$("#toast");
+  const mBack=$("#modalBack"), mClose=$("#mClose"), mCancel=$("#mCancel"), mCourt=$("#modalCourt"), mTitle=$("#mTitle");
+
+  /* ---------- helpers ---------- */
+  function showTip(x,y,p){
+    tip.innerHTML=`<div class="tooltip-head"><img src="${p.photo}"><div><div class="tooltip-name">${p.name}</div><div class="tooltip-level">${p.level||""}</div></div></div>`;
+    tip.style.left=(x+12)+"px"; tip.style.top=(y+12)+"px"; tip.style.opacity=1; tip.style.transform="translateY(0)";
+  }
+  function hideTip(){ tip.style.opacity=0; tip.style.transform="translateY(4px)"; }
+  function showToast(m){ toast.textContent=m||"OK"; toast.classList.add("show"); clearTimeout(window.__t); window.__t=setTimeout(()=>toast.classList.remove("show"),1100); }
+
+  function openModal(ci,slot){
+    mBack.style.display="flex";
+    mBack.setAttribute("aria-hidden","false");
+    mTitle.textContent = `${COURTS[ci]} • ${slot}`;
+    mCourt.setAttribute("data-ci",ci);
+    mCourt.setAttribute("data-slot",slot);
+    drawModalQuarters();
+  }
+  function closeModal(){ mBack.style.display="none"; mBack.setAttribute("aria-hidden","true"); }
+
+  function drawModalQuarters(){
+    const ci=+mCourt.getAttribute("data-ci"); const slot=mCourt.getAttribute("data-slot");
+    const s=slotObj(currentDateISO,ci,slot);
+    const isBlocked=booked(ci,slot) || isPastSlot(currentDateISO,slot);
+    QUARTERS.forEach((q,i)=>{
+      const el=mCourt.querySelector(`.q${i+1}`);
+      el.classList.remove('selected'); el.innerHTML='';
+      el.classList.toggle("muted", isBlocked);
+      if((s[q]||[]).length){
+        const p=s[q][0];
+        el.innerHTML=`<span class="ring" style="${p.hue||''}"><img src="${p.photo}" alt="${p.name}" data-tip='${JSON.stringify(p)}'></span>`;
+      }else{
+        el.innerHTML=`<span class="plus">+</span>`;
+      }
+      if(!isBlocked){
+        el.onclick=()=>joinQuarter(currentDateISO,ci,slot,q,true);
+      }else{
+        el.onclick=null;
+      }
+    });
+    // tooltips in modal
+    mCourt.querySelectorAll('img[data-tip]').forEach(img=>{
+      img.addEventListener('mouseenter', e=>{ try{ showTip(e.clientX,e.clientY, JSON.parse(img.getAttribute('data-tip')||"{}")); }catch(_){} });
+      img.addEventListener('mouseleave', hideTip);
+      document.addEventListener('mousemove',ev=>{ if(tip.style.opacity==="1"){ tip.style.left=(ev.clientX+12)+"px"; tip.style.top=(ev.clientY+12)+"px"; }});
+    });
+  }
+
+  /* ---------- actions ---------- */
+  function joinQuarter(date,ci,slot,q,fromModal=false){
+    if(booked(ci,slot) || isPastSlot(date,slot)){ showToast("Slot nie je dostupný"); return; }
+    const s=slotObj(date,ci,slot);
+    if(totalCount(s)>=MAX_TOTAL){ showToast("Skupina je plná"); return; }
+    if((s[q]||[]).length){ showToast("Táto štvrtina je obsadená"); return; }
+    if(meInside(s)){ showToast("Už si v tejto partii"); return; }
+    s[q].push({ name:CURRENT_USER.name||"Ja", level:CURRENT_USER.level||"", photo:CURRENT_USER.photo, hue:"--ring:#22c55e" });
+    renderAll();
+    if(fromModal) closeModal();
+    showToast("Pridaný do štvrte");
+    const card = actGrid.querySelector(`[data-ci="${ci}"][data-slot="${slot}"]`);
+    if(card) card.scrollIntoView({behavior:'smooth', block:'nearest', inline:'nearest'});
+  }
+  function leaveGroup(date,ci,slot){
+    const s=slotObj(date,ci,slot); removeMe(s); renderAll(); showToast("Odobratý zo skupiny");
+  }
+
+  /* ---------- renderers ---------- */
+  function renderActive(){
+    const list=[];
+    [0,1].forEach(ci=>{
+      SLOTS.forEach(slot=>{
+        if(booked(ci,slot)) return;
+        const s=slotObj(currentDateISO,ci,slot);
+        const total=totalCount(s);
+        if(total>0) list.push({ci,slot,total,s});
+      });
+    });
+    // sort: future first by time, then past; inside, more players first
+    list.sort((a,b)=>{
+      const pastA=isPastSlot(currentDateISO,a.slot), pastB=isPastSlot(currentDateISO,b.slot);
+      if(pastA!==pastB) return pastA?1:-1;
+      const p=b.total-a.total; if(p!==0) return p;
+      return a.slot.slice(0,5).localeCompare(b.slot.slice(0,5));
+    });
+
+    actGrid.innerHTML = list.map(item=>{
+      const {ci,slot,s,total}=item;
+      const me = meInside(s);
+      const full = total>=MAX_TOTAL;
+      const past = isPastSlot(currentDateISO,slot);
+      const muted = (full||past) ? 'slot-full' : '';
+
+      const btn = me
+        ? `<button class="btn sm" data-leave data-ci="${ci}" data-slot="${slot}"><i class="fa-solid fa-xmark"></i> Odísť</button>`
+        : `<button class="btn sm ${full||past?'':'primary'}" ${full||past?'disabled':''} data-open data-ci="${ci}" data-slot="${slot}">${past?'Ukončené':(full?'Plné':'Vybrať štvrtinu')}</button>`;
+
+      const quarters = QUARTERS.map((q,i)=>{
+        const p=(s[q]||[])[0];
+        const content = p
+          ? `<span class="ring" style="${p.hue||''}"><img src="${p.photo}" alt="${p.name}" data-tip='${JSON.stringify(p)}'></span>`
+          : `<span class="plus">+</span>`;
+        const extra = (p?'':' data-ci="'+ci+'" data-slot="'+slot+'" data-q="'+q+'"');
+        return `<div class="q q${i+1} ${past?'muted':''}"${extra}>${content}</div>`;
+      }).join('');
+
+      return `
+        <div class="act-card" data-ci="${ci}" data-slot="${slot}">
+          <div class="act-top">
+            <div class="act-tt">${slot}</div>
+            <div class="act-meta"><span class="pill">${COURTS[ci]}</span><span class="pill">${total}/4</span></div>
+          </div>
+          <div class="court ${muted}">
+            <img src="{{ url_for('static', filename='images/kurt.png') }}" alt="Kurt">
+            ${quarters}
+          </div>
+          <div class="act-top" style="margin-top:8px">${btn}<div></div></div>
+        </div>`;
+    }).join("");
+
+    // avatars tooltip
+    actGrid.querySelectorAll('img[data-tip]').forEach(img=>{
+      img.addEventListener('mouseenter', e=>{ try{ showTip(e.clientX,e.clientY, JSON.parse(img.getAttribute('data-tip')||"{}")); }catch(_){} });
+      img.addEventListener('mouseleave', hideTip);
+      document.addEventListener('mousemove',ev=>{ if(tip.style.opacity==="1"){ tip.style.left=(ev.clientX+12)+"px"; tip.style.top=(ev.clientY+12)+"px"; }});
+    });
+
+    // open modal / leave
+    actGrid.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>openModal(+b.dataset.ci,b.dataset.slot)));
+    actGrid.querySelectorAll('[data-leave]').forEach(b=>b.addEventListener('click',()=>leaveGroup(currentDateISO,+b.dataset.ci,b.dataset.slot)));
+
+    // click directly on a free quarter inside card to join fast
+    actGrid.querySelectorAll('.court .q[data-q]').forEach(el=>{
+      const ci=+el.getAttribute('data-ci'); const slot=el.getAttribute('data-slot'); const q=el.getAttribute('data-q');
+      el.addEventListener('click',()=>joinQuarter(currentDateISO,ci,slot,q,false));
+    });
+  }
+
+  function buildCard(ci, slot){
+    const s=slotObj(currentDateISO,ci,slot);
+    const full = totalCount(s)>=MAX_TOTAL;
+    const blocked = booked(ci,slot);
+    const past = isPastSlot(currentDateISO,slot);
+
+    const cls = [
+      'tcard',
+      blocked ? 'blocked' : '',
+      full ? 'full' : '',
+      past ? 'past' : ''
+    ].join(' ');
+
+    const statusText = past ? 'prešlo'
+                     : blocked ? 'obsadené'
+                     : full ? 'plné'
+                     : 'voľné';
+
+    const dotColor = past ? '#9ca3af'
+                   : blocked ? '#d1d5db'
+                   : full ? '#b91c1c'
+                   : '#16a34a';
+
+    const btn = (!blocked && !past)
+      ? `<button class="btn-mini ${full?'':'primary'}" ${full?'disabled':''} data-pick data-ci="${ci}" data-slot="${slot}">${full?'Plné':'Založiť'}</button>`
+      : `<button class="btn-mini" disabled>${statusText}</button>`;
+
+    return `
+      <div class="${cls}">
+        <div class="t-left"><span class="badge-small">${COURTS[ci].replace('Kurt ','K')}</span></div>
+        <div>
+          <div class="time">${slot}</div>
+          <div class="status"><span class="dot-sm" style="background:${dotColor}"></span> ${statusText}</div>
+        </div>
+        <div>${btn}</div>
+      </div>`;
+  }
+
+  function renderCreate(cidx){
+    const holder = cidx===0 ? rail1 : rail2;
+    holder.innerHTML = SLOTS.map(slot=>buildCard(cidx,slot)).join("");
+    // open modal for free slot
+    holder.querySelectorAll('[data-pick]').forEach(b=>b.addEventListener('click',()=>openModal(+b.dataset.ci,b.dataset.slot)));
+  }
+
+  function renderAll(){ renderActive(); renderCreate(0); renderCreate(1); }
+
+  /* ---------- date helpers ---------- */
+  let currentDateISO;
+  function fmtISO(d){ return d.toISOString().slice(0,10); }
+  function parseISO(s){ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
+
+  async function refresh(){
+    seed(currentDateISO);
+    await loadBusy(currentDateISO);
+    renderAll();
+  }
+
+  /* ---------- controls ---------- */
+  const today = new Date();
+  currentDateISO = fmtISO(today);
+  dp.value = currentDateISO;
+
+  prev.addEventListener('click', async ()=>{
+    const d=parseISO(currentDateISO); d.setDate(d.getDate()-1);
+    currentDateISO=fmtISO(d); dp.value=currentDateISO; await refresh();
+  });
+  next.addEventListener('click', async ()=>{
+    const d=parseISO(currentDateISO); d.setDate(d.getDate()+1);
+    currentDateISO=fmtISO(d); dp.value=currentDateISO; await refresh();
+  });
+  dp.addEventListener('change', async e=>{ currentDateISO=e.target.value||currentDateISO; await refresh(); });
+
+  // modal events
+  mClose.addEventListener('click', closeModal);
+  mCancel.addEventListener('click', closeModal);
+  mBack.addEventListener('click', e=>{ if(e.target===mBack) closeModal(); });
+
+  // init
+  refresh();
+})();
+</script>
+{% endblock %}

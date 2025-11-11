@@ -15,7 +15,6 @@
       --shadow:0 6px 24px rgba(16,24,40,.06);
       --ok:#16a34a;
       --radius:12px;
-      --sidebar:250px;
       --green-bg:#ecfdf3;  --green-bd:#b7f0c6;
       --red-bg:#fff5f5;    --red-bd:#fecaca;
     }
@@ -35,17 +34,19 @@
     .btn-accent{background:var(--accent);border-color:var(--accent);color:#fff}
 
     /* Layout */
-    .wrap{max-width:1200px;margin:0 auto;padding:18px 12px;display:grid;gap:18px;grid-template-columns:var(--sidebar) 1fr}
-    @media (max-width:992px){.wrap{grid-template-columns:1fr}}
-
-    /* Sidebar */
-    .side{border:1px solid var(--border);border-radius:14px;background:#fff;box-shadow:var(--shadow);padding:14px;position:sticky;top:72px;height:fit-content}
-    .side h3{margin:0 0 8px 0;font-size:1.05rem;font-weight:750}
-    .nav{list-style:none;margin:0;padding:0}
-    .nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--ink);border:1px solid transparent}
-    .nav a:hover{background:#fafbff;border-color:#eef0f5}
-    .nav a.active{background:#f3f4ff;border-color:#dfe1ff;color:#2b2acb}
-    .ico{width:16px;display:inline-flex;align-items:center;justify-content:center}
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:18px 12px;
+      display:grid;
+      gap:18px;
+      grid-template-columns:250px 1fr; /* pevná šírka sidebaru */
+    }
+    @media (max-width:992px){
+      .wrap{
+        grid-template-columns:1fr;
+      }
+    }
 
     /* Card */
     .card{border:1px solid var(--border);border-radius:14px;background:#fff;box-shadow:var(--shadow)}

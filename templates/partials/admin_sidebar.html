@@ -1,12 +1,107 @@
 <!-- templates/partials/admin_sidebar.html -->
-<aside class="side">
-  <h3>Navigácia</h3>
-  <ul class="nav">
+<style>
+  /* === UNIVERSAL ADMIN SIDEBAR STYLES (scoped with .admin-side-wrap) === */
+
+  :root {
+    --admin-accent: #3a38d6;
+    --admin-bg: #ffffff;
+    --admin-border: #e7e9ef;
+    --admin-text: #111827;
+    --admin-muted: #667085;
+    --admin-hover: #f3f4ff;
+    --admin-active-bg: #f3f4ff;
+    --admin-active-border: #dfe1ff;
+    --admin-radius: 14px;
+    --admin-shadow: 0 6px 24px rgba(16,24,40,.06);
+  }
+
+  /* wrapper just to make selector specificity high enough
+     and avoid collisions with other .side classes you had before */
+  .admin-side-wrap {
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    background: var(--admin-bg);
+    box-shadow: var(--admin-shadow);
+    padding: 16px 14px;
+    position: sticky;
+    top: 72px;
+    height: fit-content;
+    min-width: 220px;
+    box-sizing: border-box;
+  }
+
+  .admin-side-title {
+    margin: 0 0 10px 0;
+    font-size: 1.05rem;
+    font-weight: 750;
+    color: var(--admin-text);
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+  }
+
+  .admin-nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+  }
+
+  .admin-nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--admin-text);
+    border: 1px solid transparent;
+    font-size: .9rem;
+    font-weight: 500;
+    line-height: 1.3;
+    background: #fff;
+    transition: all .18s ease;
+  }
+
+  .admin-nav a:hover {
+    background: var(--admin-hover);
+    border-color: #eef0f5;
+  }
+
+  .admin-nav a.active {
+    background: var(--admin-active-bg);
+    border-color: var(--admin-active-border);
+    color: var(--admin-accent);
+  }
+
+  .admin-nav a .ico {
+    width: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    font-size: .9rem;
+    line-height: 1;
+  }
+
+  @media (max-width: 992px) {
+    .admin-side-wrap {
+      position: relative;
+      top: 0;
+      width: 100%;
+    }
+  }
+</style>
+
+<aside class="admin-side-wrap">
+  <h3 class="admin-side-title">Navigácia</h3>
+
+  <ul class="admin-nav">
     <li>
       <a class="{{ 'active' if active == 'reservations' else '' }}"
          href="{{ url_for('admin_dashboard') }}">
         <i class="fa-regular fa-calendar ico"></i>
-        Rezervácie
+        <span>Rezervácie</span>
       </a>
     </li>
 
@@ -14,7 +109,7 @@
       <a class="{{ 'active' if active == 'customers' else '' }}"
          href="{{ url_for('admin_customers') }}">
         <i class="fa-regular fa-user ico"></i>
-        Zoznam zákazníkov
+        <span>Zoznam zákazníkov</span>
       </a>
     </li>
 
@@ -22,7 +117,7 @@
       <a class="{{ 'active' if active == 'join' else '' }}"
          href="{{ url_for('admin_dashboard') }}">
         <i class="fa-regular fa-circle-play ico"></i>
-        Pridaj sa do hry
+        <span>Pridaj sa do hry</span>
       </a>
     </li>
 
@@ -30,7 +125,7 @@
       <a class="{{ 'active' if active == 'stats' else '' }}"
          href="{{ url_for('admin_stats') }}">
         <i class="fa-solid fa-chart-line ico"></i>
-        Štatistiky
+        <span>Štatistiky</span>
       </a>
     </li>
 
@@ -38,7 +133,7 @@
       <a class="{{ 'active' if active == 'codes' else '' }}"
          href="{{ url_for('admin_codes') }}">
         <i class="fa-solid fa-ticket-simple ico"></i>
-        Zľavové kódy
+        <span>Zľavové kódy</span>
       </a>
     </li>
   </ul>
